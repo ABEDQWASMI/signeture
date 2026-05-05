@@ -38,11 +38,11 @@
     },
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "614b0160-5c14-403d-81d0-86227cb2b69e"
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
+      "url": "https://u.expo.dev/614b0160-5c14-403d-81d0-86227cb2b69e"
     }
   }
 }
