@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>PayloadContent</key>
+<array>
+<dict>
+<key>FullScreen</key>
+<true/>
+<key>IsRemovable</key>
+<true/>
+<key>Label</key>
+<string>Signature ?</string>
+<key>PayloadIdentifier</key>
+<string>com.signature.coffeehouse.webclip</string>
+<key>PayloadType</key>
+<string>com.apple.webClip.managed</string>
+<key>PayloadUUID</key>
+<string>B2C3D4E5-F6A7-8901-BCDE-F12345678902</string>
+<key>PayloadVersion</key>
+<integer>1</integer>
+<key>URL</key>
+<string>https://abedqwasmi.github.io/signeture</string>
+</dict>
+</array>
+<key>PayloadDisplayName</key>
+<string>Signature Coffeehouse</string>
+<key>PayloadDescription</key>
+<string>Add Signature Coffeehouse to your home screen for the full app experience.</string>
+<key>PayloadIdentifier</key>
+<string>com.signature.coffeehouse.profile</string>
+<key>PayloadOrganization</key>
+<string>Signature Coffeehouse</string>
+<key>PayloadRemovalDisallowed</key>
+<false/>
+<key>PayloadType</key>
+<string>Configuration</string>
+<key>PayloadUUID</key>
+<string>A1B2C3D4-E5F6-7890-ABCD-EF1234567891</string>
+<key>PayloadVersion</key>
+<integer>1</integer>
+</dict>
+</plist>
