@@ -1,19 +1,19 @@
-// ─── Brand Color Palette ───────────────────────────────────────────────────
+// ─── Brand Color Palette (Starbucks Inspired) ──────────────────────────────
 export const DarkColors = {
-  primary: '#C5A36D',       // Gold / Bronze  – Logo, Icons, Buttons
-  background: '#000000',    // Deep Black     – App background
-  secondary: '#F5F5F5',     // Off-White      – Primary text
-  accent: '#3D2B1F',        // Coffee Brown   – Hover states
+  primary: '#00704A',       // Starbucks Green – Logo, Icons, Buttons
+  background: '#1E1C1C',    // Deep Brown      – App background
+  secondary: '#F5F5F5',     // Off-White       – Primary text
+  accent: '#D4AF37',        // Gold Accent     – Hover states & highlights
 
   // Derived shades
-  primaryLight: '#D4B98A',
-  primaryDark: '#A8885A',
-  cardBg: '#0F0F0F',
-  cardBorder: '#1C1C1C',
-  surfaceBg: '#111111',
-  surfaceElevated: '#181818',
-  textMuted: '#8A8A8A',
-  textSubtle: '#555555',
+  primaryLight: '#00A862',
+  primaryDark: '#004E2D',
+  cardBg: '#2B2928',
+  cardBorder: '#3D3A38',
+  surfaceBg: '#262321',
+  surfaceElevated: '#322F2D',
+  textMuted: '#9B9B9B',
+  textSubtle: '#6F6F6F',
   success: '#4CAF50',
   error: '#E53935',
   warning: '#FF9800',
@@ -22,14 +22,14 @@ export const DarkColors = {
 };
 
 export const LightColors = {
-  primary: '#C5A36D',       // Gold stays the same
-  background: '#FAFAF8',    // Warm off-white
-  secondary: '#1A1A1A',     // Dark text
-  accent: '#F5EDE0',        // Warm cream
+  primary: '#00704A',       // Starbucks Green
+  background: '#FDFBF7',    // Cream off-white
+  secondary: '#1E1C1C',     // Deep brown text
+  accent: '#D4AF37',        // Gold Accent
 
   // Derived shades
-  primaryLight: '#D4B98A',
-  primaryDark: '#A8885A',
+  primaryLight: '#00A862',
+  primaryDark: '#004E2D',
   cardBg: '#FFFFFF',
   cardBorder: '#F0EBE3',
   surfaceBg: '#F5F2EE',
@@ -103,8 +103,8 @@ export const Radii = {
 
 // ─── Shadows ───────────────────────────────────────────────────────────────
 export const Shadows = {
-  gold: {
-    shadowColor: '#C5A36D',
+  green: {
+    shadowColor: '#00704A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
