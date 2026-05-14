@@ -1,0 +1,22 @@
+{
+  "name": "Signature Coffeehouse",
+  "short_name": "Signature",
+  "description": "قهوتك المفضلة، في كل مكان",
+  "start_url": "/install-page/",
+  "display": "standalone",
+  "background_color": "#080604",
+  "theme_color": "#C5A36D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "../assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "../assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
