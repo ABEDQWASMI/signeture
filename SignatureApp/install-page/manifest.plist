@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  iOS OTA Install Manifest — Signature Coffeehouse           ║
+  ║                                                              ║
+  ║  INSTRUCTIONS:                                               ║
+  ║  1. Build IPA with: npx eas-cli build --platform ios        ║
+  ║     --profile preview                                        ║
+  ║  2. Download the .ipa from EAS dashboard                     ║
+  ║  3. Upload .ipa to a public HTTPS host (e.g. Vercel, S3)    ║
+  ║  4. Replace IPA_DOWNLOAD_URL below with the real URL         ║
+  ║  5. Replace BUNDLE_ID with: com.signature.coffeehouse        ║
+  ║  6. Replace ICON_URL with the full URL to your icon.png      ║
+  ║  7. Host this plist at a public HTTPS URL                    ║
+  ║  8. Update IPA_PLIST_URL in index.html with this plist URL   ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<plist version="1.0">
+<dict>
+  <key>items</key>
+  <array>
+    <dict>
+      <key>assets</key>
+      <array>
+        <!-- IPA download URL — REPLACE THIS -->
+        <dict>
+          <key>kind</key>
+          <string>software-package</string>
+          <key>url</key>
+          <string>https://YOUR_HOSTING_URL/SignatureCoffeehouse.ipa</string>
+        </dict>
+        <!-- App icon — REPLACE THIS -->
+        <dict>
+          <key>kind</key>
+          <string>display-image</string>
+          <key>url</key>
+          <string>https://YOUR_HOSTING_URL/icon.png</string>
+        </dict>
+        <dict>
+          <key>kind</key>
+          <string>full-size-image</string>
+          <key>url</key>
+          <string>https://YOUR_HOSTING_URL/icon.png</string>
+        </dict>
+      </array>
+      <key>metadata</key>
+      <dict>
+        <key>bundle-identifier</key>
+        <string>com.signature.coffeehouse</string>
+        <key>bundle-version</key>
+        <string>1.0.0</string>
+        <key>kind</key>
+        <string>software</string>
+        <key>title</key>
+        <string>Signature Coffeehouse</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>
