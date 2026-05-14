@@ -139,7 +139,7 @@ export function LoginScreen({ navigation }) {
                   <SocialBtn iconName="share-2" label="Facebook" onPress={() => {}} />
                 </View>
 
-                <TouchableOpacity style={styles.browseBtn} onPress={() => navigation.navigate('MainTabs')}>
+                <TouchableOpacity style={styles.browseBtn} onPress={() => login({ id: 'guest', name: 'Guest', isGuest: true })}>
                   <Icon name="map" size={14} color={Colors.primary} />
                   <Text style={styles.browseBtnText}>تصفّح كزائر</Text>
                   <Icon name="chevron-right" size={14} color={Colors.primary} />

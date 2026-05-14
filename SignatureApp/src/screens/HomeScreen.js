@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Icon } from '../components/Icon';
+import Icon from '../components/Icon';
 import { Colors, Typography, Radii, Spacing, Shadows } from '../constants/theme';
 import { MenuCard } from '../components/MenuCard';
 import { useApp } from '../context/AppContext';
