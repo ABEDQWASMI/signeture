@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { Icon } from '../components/Icon';
 import { Colors, Typography, Radii, Spacing, Shadows } from '../constants/theme';
 import { MenuCard } from '../components/MenuCard';
 import { useApp } from '../context/AppContext';
@@ -18,12 +19,12 @@ function useFadeUp(delay = 0) {
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
-        toValue: 1, duration: 600, delay,
-        easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true,
+        toValue: 1, duration: 700, delay,
+        easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true,
       }),
       Animated.timing(translateY, {
-        toValue: 0, duration: 600, delay,
-        easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true,
+        toValue: 0, duration: 700, delay,
+        easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true,
       }),
     ]).start();
   }, []);
@@ -66,7 +67,7 @@ function QuickBtn({ iconName, label, onPress }) {
     Animated.parallel([
       Animated.spring(scale, { toValue: 0.88, damping: 14, stiffness: 280, useNativeDriver: true }),
       Animated.timing(rotateSpin, {
-        toValue: 1, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true,
+        toValue: 1, duration: 400, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true,
       }),
     ]).start(() => {
       Animated.parallel([
@@ -104,7 +105,7 @@ function QuickBtn({ iconName, label, onPress }) {
           },
         ]}
         >
-          <Feather name={iconName} size={22} color={Colors.primary} />
+          <Icon name={iconName} size={22} color={Colors.primary} />
         </Animated.View>
         <Text style={styles.quickBtnLabel}>{label}</Text>
       </TouchableOpacity>
@@ -178,12 +179,15 @@ export function HomeScreen({ navigation }) {
   const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Background glow */}
+    <View style={[styles.root, { backgroundColor: '#050505' }]}>
+      {/* Ethereal Glass Background */}
       <LinearGradient
-        colors={isDark ? ['rgba(197,163,109,0.12)', 'transparent'] : ['rgba(197,163,109,0.08)', 'transparent']}
-        style={[styles.headerGrad, { transform: [{ translateY: headerParallax }] }]}
+        colors={['rgba(197,163,109,0.08)', 'rgba(138,43,226,0.05)', 'transparent']}
+        style={styles.glassBg}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       />
+      <View style={styles.radialOrb1} />
+      <View style={styles.radialOrb2} />
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -203,13 +207,13 @@ export function HomeScreen({ navigation }) {
                 style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}
                 onPress={toggleTheme}
               >
-                <Feather name={isDark ? 'sun' : 'moon'} size={19} color={colors.primary} />
+                <Icon name={isDark ? 'sun' : 'moon'} size={19} color={colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}
                 onPress={() => navigation.navigate('Cart')}
               >
-                <Feather name="shopping-bag" size={19} color={colors.secondary} />
+                <Icon name="shopping-bag" size={19} color={colors.secondary} />
                 {cartCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{cartCount}</Text>
@@ -220,7 +224,7 @@ export function HomeScreen({ navigation }) {
                 style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}
                 onPress={() => navigation.navigate('Profile')}
               >
-                <Feather name="bell" size={19} color={colors.secondary} />
+                <Icon name="bell" size={19} color={colors.secondary} />
                 {notifications > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{notifications}</Text>
@@ -261,7 +265,7 @@ export function HomeScreen({ navigation }) {
                   style={styles.rewardDetailsBtn}
                   onPress={() => navigation.navigate('Rewards')}
                 >
-                  <Feather name="chevron-left" size={14} color={Colors.primary} />
+                  <Icon name="chevron-left" size={14} color={Colors.primary} />
                   <Text style={styles.rewardDetailsBtnText}>عرض</Text>
                 </TouchableOpacity>
                 <View>
@@ -324,13 +328,13 @@ export function HomeScreen({ navigation }) {
               style={styles.couponBannerInner}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             >
-              <Feather name="chevron-left" size={22} color={Colors.primaryLight} />
+              <Icon name="chevron-left" size={22} color={Colors.primaryLight} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.couponBannerTitle}>لديك 3 كوبونات نشطة</Text>
                 <Text style={styles.couponBannerSub}>اضغط لعرض خصوماتك واسترداد المكافآت</Text>
               </View>
               <View style={styles.couponIconWrap}>
-                <Feather name="gift" size={22} color={Colors.primary} />
+                <Icon name="gift" size={22} color={Colors.primary} />
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -383,7 +387,7 @@ export function HomeScreen({ navigation }) {
               <View style={styles.deliveryLeft}>
                 <Text style={styles.deliveryTitle}>توصيل سريع</Text>
                 <View style={styles.etaRow}>
-                  <Feather name="zap" size={13} color={Colors.primary} />
+                  <Icon name="zap" size={13} color={Colors.primary} />
                   <Text style={styles.deliveryEta}> ١٨–٢٥ دقيقة</Text>
                 </View>
                 <Text style={styles.deliverySub}>بناءً على عنوانك المحفوظ</Text>
@@ -491,7 +495,7 @@ function NewArrivalCard({ item, colors, onPress, onAddToCart }) {
                 onPress={handleAddPress}
                 style={styles.newCardAddBtn}
               >
-                <Feather name="plus" size={16} color={colors.background} />
+                <Icon name="plus" size={16} color={colors.background} />
               </TouchableOpacity>
             </Animated.View>
             <View style={styles.newCardPriceRow}>
@@ -509,10 +513,40 @@ function NewArrivalCard({ item, colors, onPress, onAddToCart }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: Spacing.lg },
-  headerGrad: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 220,
+  root: { flex: 1 },
+  scroll: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl * 3, paddingBottom: Spacing.xl * 2 },
+  glassBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  radialOrb1: {
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+    shadowColor: '#8A2BE2',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 50,
+  },
+  radialOrb2: {
+    position: 'absolute',
+    top: '60%',
+    right: '15%',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(46, 204, 113, 0.08)',
+    shadowColor: '#2ECC71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 40,
   },
 
   header: {
@@ -520,7 +554,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.xl * 2,
   },
   headerLeft: { alignItems: 'flex-end' },
   headerRight: { flexDirection: 'row', gap: 10 },
@@ -553,11 +587,24 @@ const styles = StyleSheet.create({
   badgeText: { color: Colors.background, fontSize: 9, fontWeight: Typography.bold },
 
   rewardOuter: {
-    borderRadius: Radii['2xl'], borderWidth: 1,
-    borderColor: 'rgba(197,163,109,0.3)', padding: 2,
-    marginBottom: Spacing.lg, ...Shadows.gold,
+    borderRadius: Radii['3xl'],
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 3,
+    marginBottom: Spacing.xl * 2,
+    shadowColor: '#C5A36D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
-  rewardInner: { borderRadius: Radii.xl, padding: Spacing.lg },
+  rewardInner: {
+    borderRadius: Radii['2xl'],
+    backgroundColor: 'rgba(42, 30, 10, 0.95)',
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(197, 163, 109, 0.2)',
+  },
   rewardTop: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'flex-start', marginBottom: 12,
@@ -611,7 +658,7 @@ const styles = StyleSheet.create({
 
   quickActions: {
     flexDirection: 'row', justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl * 2,
   },
   quickBtn: { alignItems: 'center', gap: 8 },
   quickBtnIcon: {
@@ -625,12 +672,18 @@ const styles = StyleSheet.create({
   },
 
   couponBanner: {
-    borderRadius: Radii.xl, overflow: 'hidden',
-    marginBottom: Spacing.lg,
+    borderRadius: Radii['3xl'],
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    padding: 2,
+    marginBottom: Spacing.xl * 2,
+    overflow: 'hidden',
   },
   couponBannerInner: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 16, gap: 12,
+    borderRadius: Radii['2xl'],
+    padding: 16,
+    gap: 12,
   },
   couponBannerTitle: {
     color: Colors.secondary, fontSize: Typography.base,
@@ -648,7 +701,7 @@ const styles = StyleSheet.create({
 
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 14,
+    alignItems: 'center', marginBottom: Spacing.xl,
   },
   sectionTitle: {
     color: Colors.secondary, fontSize: Typography.lg,
@@ -657,18 +710,25 @@ const styles = StyleSheet.create({
   seeAll: {
     color: Colors.primary, fontSize: Typography.sm, fontWeight: Typography.medium,
   },
-  featuredList: { paddingRight: Spacing.lg, gap: 12, marginBottom: Spacing.lg },
+  featuredList: { paddingRight: Spacing.lg, gap: 12, marginBottom: Spacing.xl * 2 },
 
   deliveryCard: {
-    borderRadius: Radii.xl, borderWidth: 1,
-    borderColor: 'rgba(197,163,109,0.2)', padding: 2,
-    marginBottom: Spacing.lg,
+    borderRadius: Radii['3xl'],
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    padding: 2,
+    marginBottom: Spacing.xl * 2,
   },
   deliveryCardInner: {
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: Radii.lg, padding: 16,
-    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: Radii['2xl'],
+    padding: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(197,163,109,0.15)',
   },
   deliveryLeft: { flex: 1, alignItems: 'flex-end' },
   deliveryTitle: {
@@ -693,11 +753,13 @@ const styles = StyleSheet.create({
     fontWeight: Typography.bold, letterSpacing: 0.5,
   },
 
-  // ── New Arrivals Cards ──
   newCard: {
     width: 220,
-    borderRadius: Radii.xl,
+    borderRadius: Radii['2xl'],
+    backgroundColor: 'rgba(255,255,255,0.02)',
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    padding: 2,
     overflow: 'hidden',
   },
   newCardImageWrap: {
@@ -738,7 +800,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   newCardContent: {
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: Radii.xl,
     padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   newCardName: {
     fontSize: Typography.base,
