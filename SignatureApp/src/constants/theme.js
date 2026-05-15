@@ -1,46 +1,46 @@
-// ─── Brand Color Palette (Starbucks Inspired) ──────────────────────────────
+// ─── Brand Color Palette (Premium Light Mode) ──────────────────────────────
 export const DarkColors = {
-  primary: '#00704A',       // Starbucks Green – Logo, Icons, Buttons
-  background: '#1E1C1C',    // Deep Brown      – App background
-  secondary: '#F5F5F5',     // Off-White       – Primary text
-  accent: '#D4AF37',        // Gold Accent     – Hover states & highlights
+  primary: '#8B6F47',       // Warm Brown – Logo, Icons, Buttons
+  background: '#FFFFFF',   // Pure White – App background
+  secondary: '#1A1A1A',    // Dark Text
+  accent: '#D4AF37',       // Gold Accent – Hover states & highlights
 
   // Derived shades
-  primaryLight: '#00A862',
-  primaryDark: '#004E2D',
-  cardBg: '#2B2928',
-  cardBorder: '#3D3A38',
-  surfaceBg: '#262321',
-  surfaceElevated: '#322F2D',
-  textMuted: '#9B9B9B',
-  textSubtle: '#6F6F6F',
+  primaryLight: '#A68A5F',
+  primaryDark: '#6B5436',
+  cardBg: '#FFFFFF',
+  cardBorder: '#E8E8E8',
+  surfaceBg: '#F9F9F9',
+  surfaceElevated: '#FFFFFF',
+  textMuted: '#777777',
+  textSubtle: '#999999',
   success: '#4CAF50',
   error: '#E53935',
   warning: '#FF9800',
   white: '#FFFFFF',
-  overlay: 'rgba(0,0,0,0.75)',
+  overlay: 'rgba(0,0,0,0.1)',
 };
 
 export const LightColors = {
-  primary: '#00704A',       // Starbucks Green
-  background: '#FDFBF7',    // Cream off-white
-  secondary: '#1E1C1C',     // Deep brown text
-  accent: '#D4AF37',        // Gold Accent
+  primary: '#8B6F47',       // Warm Brown
+  background: '#FFFFFF',   // Pure White
+  secondary: '#1A1A1A',    // Dark Text
+  accent: '#D4AF37',       // Gold Accent
 
   // Derived shades
-  primaryLight: '#00A862',
-  primaryDark: '#004E2D',
+  primaryLight: '#A68A5F',
+  primaryDark: '#6B5436',
   cardBg: '#FFFFFF',
-  cardBorder: '#F0EBE3',
-  surfaceBg: '#F5F2EE',
+  cardBorder: '#E8E8E8',
+  surfaceBg: '#F9F9F9',
   surfaceElevated: '#FFFFFF',
-  textMuted: '#7A7A7A',
-  textSubtle: '#AAAAAA',
+  textMuted: '#777777',
+  textSubtle: '#999999',
   success: '#4CAF50',
   error: '#E53935',
   warning: '#FF9800',
   white: '#FFFFFF',
-  overlay: 'rgba(255,255,255,0.85)',
+  overlay: 'rgba(0,0,0,0.1)',
 };
 
 // Default export (will be overridden by context)

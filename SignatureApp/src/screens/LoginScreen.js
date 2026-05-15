@@ -68,24 +68,19 @@ export function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      {/* Background gradient blobs */}
-      <View style={styles.blob1} />
-      <View style={styles.blob2} />
-
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-            {/* Logo */}
+            {/* Centered Logo Section */}
             <Animated.View style={[styles.logoWrap, { opacity: logoAnim, transform: [{ translateY: logoY }] }]}>
-              <View style={styles.logoOuter}>
-                <View style={styles.logoInner}>
-                  <Image source={require('../../assets/logo.png')} style={styles.logoImg} resizeMode="contain" />
+              <TouchableOpacity style={styles.logoBtnWrapper} onPress={() => {}}>
+                <View style={styles.logoOuter}>
+                  <View style={styles.logoInner}>
+                    <Image source={require('../../assets/logo.png')} style={styles.logoImg} resizeMode="contain" />
+                  </View>
                 </View>
-              </View>
-              <View style={styles.eyebrow}>
-                <Text style={styles.eyebrowText}>SIGNATURE COFFEEHOUSE</Text>
-              </View>
+              </TouchableOpacity>
               <Text style={styles.headline}>أهلاً{'\n'}بعودتك</Text>
               <Text style={styles.sub}>سجّل دخولك للمتابعة</Text>
             </Animated.View>
@@ -163,85 +158,79 @@ export function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#1E1C1C' },
-  blob1: {
-    position: 'absolute', top: -100, right: -80,
-    width: 320, height: 320, borderRadius: 160,
-    backgroundColor: 'rgba(0,112,74,0.08)',
-  },
-  blob2: {
-    position: 'absolute', bottom: 100, left: -100,
-    width: 260, height: 260, borderRadius: 130,
-    backgroundColor: 'rgba(0,112,74,0.05)',
-  },
+  root: { flex: 1, backgroundColor: '#FFFFFF' },
   scroll: { paddingHorizontal: 20, paddingBottom: 40 },
-  logoWrap: { alignItems: 'flex-end', paddingTop: 32, paddingBottom: 32 },
+  logoWrap: { alignItems: 'center', paddingTop: 48, paddingBottom: 40 },
+  logoBtnWrapper: { 
+    marginBottom: 24,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, 
+    shadowRadius: 12,
+    elevation: 3,
+  },
   logoOuter: {
-    width: 88, height: 88, borderRadius: 28,
-    backgroundColor: 'rgba(0,112,74,0.08)',
-    borderWidth: 1, borderColor: 'rgba(0,112,74,0.15)',
-    padding: 4, marginBottom: 20,
+    width: 100, height: 100, borderRadius: 32,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1, borderColor: '#E8E8E8',
+    padding: 4,
   },
   logoInner: {
-    flex: 1, borderRadius: 24,
-    backgroundColor: '#2B2928',
+    flex: 1, borderRadius: 28,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
   },
-  logoImg: { width: 64, height: 64 },
-  eyebrow: {
-    backgroundColor: 'rgba(0,112,74,0.1)',
-    borderWidth: 1, borderColor: 'rgba(0,112,74,0.2)',
-    borderRadius: 100, paddingHorizontal: 12, paddingVertical: 4,
-    marginBottom: 16,
-  },
-  eyebrowText: { color: '#00704A', fontSize: 10, letterSpacing: 2, fontWeight: '600' },
+  logoImg: { width: 72, height: 72 },
   headline: {
-    fontSize: 44, fontWeight: '800', color: '#F5F0E8',
-    lineHeight: 52, textAlign: 'right', marginBottom: 8,
+    fontSize: 42, fontWeight: '800', color: '#1A1A1A',
+    lineHeight: 50, textAlign: 'center', marginBottom: 12,
     letterSpacing: -0.5,
   },
-  sub: { fontSize: 15, color: 'rgba(245,240,232,0.45)', textAlign: 'right' },
+  sub: { fontSize: 15, color: '#777777', textAlign: 'center', marginBottom: 32 },
   cardOuter: {
-    borderRadius: 28, backgroundColor: 'rgba(0,112,74,0.06)',
-    borderWidth: 1, borderColor: 'rgba(0,112,74,0.12)',
+    borderRadius: 20, backgroundColor: '#FFFFFF',
+    borderWidth: 1, borderColor: '#E8E8E8',
     padding: 2, marginBottom: 24,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, 
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardInner: {
-    borderRadius: 26, backgroundColor: '#2B2928',
+    borderRadius: 18, backgroundColor: '#FFFFFF',
     padding: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.4, shadowRadius: 40,
   },
   errorBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(229,57,53,0.1)', borderRadius: 12,
-    borderWidth: 1, borderColor: 'rgba(229,57,53,0.2)',
+    backgroundColor: '#FEE', borderRadius: 12,
+    borderWidth: 1, borderColor: '#FCC',
     padding: 12, marginBottom: 16,
   },
   errorBannerText: { color: '#E53935', fontSize: 13, flex: 1, textAlign: 'right' },
-  fieldLabel: { color: 'rgba(245,240,232,0.5)', fontSize: 12, marginBottom: 6, textAlign: 'right', letterSpacing: 0.3 },
+  fieldLabel: { color: '#777777', fontSize: 12, marginBottom: 6, textAlign: 'right', letterSpacing: 0.3, fontWeight: '500' },
   pwRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-  forgotLink: { color: '#00704A', fontSize: 12 },
+  forgotLink: { color: '#8B6F47', fontSize: 12, fontWeight: '600' },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
-  dividerText: { color: 'rgba(245,240,232,0.35)', fontSize: 12 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#E8E8E8' },
+  dividerText: { color: '#999999', fontSize: 12 },
   socialRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   socialBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    gap: 6, backgroundColor: '#F9F9F9',
+    borderWidth: 1, borderColor: '#E8E8E8',
     borderRadius: 14, paddingVertical: 12,
   },
-  socialLabel: { color: 'rgba(245,240,232,0.6)', fontSize: 13, fontWeight: '500' },
+  socialLabel: { color: '#555555', fontSize: 13, fontWeight: '500' },
   browseBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 12,
-    borderRadius: 14, borderWidth: 1, borderColor: 'rgba(0,112,74,0.15)',
-    backgroundColor: 'rgba(0,112,74,0.05)',
+    borderRadius: 14, borderWidth: 1, borderColor: '#D4C5B9',
+    backgroundColor: '#FAF8F6',
   },
-  browseBtnText: { color: '#00704A', fontSize: 13, fontWeight: '600' },
+  browseBtnText: { color: '#8B6F47', fontSize: 13, fontWeight: '600' },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingBottom: 8 },
-  footerText: { color: 'rgba(245,240,232,0.4)', fontSize: 14 },
-  footerLink: { color: '#00704A', fontSize: 14, fontWeight: '600' },
+  footerText: { color: '#999999', fontSize: 14 },
+  footerLink: { color: '#8B6F47', fontSize: 14, fontWeight: '600' },
 });

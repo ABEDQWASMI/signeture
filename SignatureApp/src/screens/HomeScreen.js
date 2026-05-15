@@ -179,7 +179,7 @@ export function HomeScreen({ navigation }) {
   const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
 
   return (
-    <View style={[styles.root, { backgroundColor: '#050505' }]}>
+    <View style={[styles.root, { backgroundColor: '#FFFFFF' }]}>
       {/* Ethereal Glass Background */}
       <LinearGradient
         colors={['rgba(197,163,109,0.08)', 'rgba(138,43,226,0.05)', 'transparent']}
