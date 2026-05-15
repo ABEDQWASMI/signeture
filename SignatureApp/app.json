@@ -1,11 +1,8 @@
 {
   "expo": {
     "name": "Signature Coffeehouse",
-    "slug": "abodq",
+    "slug": "SignatureApp",
     "version": "1.0.0",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -17,12 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.signature.coffeehouse",
-      "buildNumber": "1",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Used for profile photo",
-        "NSPhotoLibraryUsageDescription": "Used for profile photo"
-      }
+      "bundleIdentifier": "com.signature.coffeehouse"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,19 +22,10 @@
         "backgroundColor": "#000000"
       },
       "package": "com.signature.coffeehouse",
-      "versionCode": 1,
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "614b0160-5c14-403d-81d0-86227cb2b69e"
-      }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/614b0160-5c14-403d-81d0-86227cb2b69e"
     }
   }
 }

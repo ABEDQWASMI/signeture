@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Signature Coffeehouse — تثبيت التطبيق</title>
+  <link rel="apple-touch-icon" href="https://abedqwasmi.github.io/signeture/assets/icon.png" />
+  <style>
+    :root {
+      --gold: #C5A36D;
+      --gold-light: #E8C98A;
+      --gold-dim: rgba(197,163,109,0.18);
+      --bg: #080604;
+      --surface: #111009;
+      --card: #181410;
+      --border: rgba(197,163,109,0.2);
+      --text: #F5F0E8;
+      --muted: rgba(245,240,232,0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: 0.4;
+    }
+
+    /* ── Background glow ── */
+    .bg-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(197,163,109,0.12) 0%, transparent 70%);
+      top: -100px; left: 50%; transform: translateX(-50%);
+    }
+    .bg-glow-2 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(197,163,109,0.06) 0%, transparent 70%);
+      bottom: 100px; right: -50px;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 20px 60px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      width: 100%; max-width: 440px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px 0 0;
+    }
+    .topbar-pill {
+      background: var(--gold-dim);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 18px;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      color: var(--gold);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      width: 100%; max-width: 440px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 40px 0 36px;
+      text-align: center;
+    }
+
+    /* App icon */
+    .icon-wrap {
+      position: relative;
+      width: 120px; height: 120px;
+      margin-bottom: 28px;
+    }
+    .icon-ring {
+      position: absolute; inset: -8px;
+      border-radius: 38px;
+      background: conic-gradient(from 0deg, var(--gold), var(--gold-light), var(--gold), var(--gold-light), var(--gold));
+      animation: spin 6s linear infinite;
+      opacity: 0.6;
+    }
+    .icon-ring::after {
+      content: '';
+      position: absolute; inset: 2px;
+      border-radius: 34px;
+      background: var(--bg);
+    }
+    .icon-img {
+      position: relative; z-index: 1;
+      width: 120px; height: 120px;
+      border-radius: 28px;
+      object-fit: cover;
+      border: 2px solid rgba(197,163,109,0.3);
+      box-shadow: 0 0 40px rgba(197,163,109,0.2), 0 20px 60px rgba(0,0,0,0.6);
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .app-name {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+    .app-name span { color: var(--gold); }
+
+    .app-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-weight: 400;
+    }
+
+    /* Rating row */
+    .rating-row {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 32px;
+    }
+    .rating-stars { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
+    .rating-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .rating-text { color: var(--muted); font-size: 13px; }
+
+    /* ── Install button ── */
+    .install-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; max-width: 340px;
+      padding: 18px 32px;
+      border-radius: 18px;
+      border: none; cursor: pointer;
+      font-size: 17px; font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #0D0900;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, #A8883A 100%);
+      box-shadow: 0 8px 32px rgba(197,163,109,0.35), 0 2px 8px rgba(0,0,0,0.4);
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      -webkit-appearance: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .install-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+      border-radius: 18px;
+    }
+    .install-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 16px rgba(197,163,109,0.25);
+    }
+    .install-btn svg { flex-shrink: 0; }
+
+    .install-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .install-note svg { opacity: 0.6; }
+
+    /* ── Divider ── */
+    .divider {
+      width: 100%; max-width: 440px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 8px 0 32px;
+    }
+
+    /* ── Feature cards ── */
+    .features {
+      width: 100%; max-width: 440px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .feat-card.wide {
+      grid-column: 1 / -1;
+      flex-direction: row; align-items: center; gap: 16px;
+    }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: var(--gold-dim);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 22px;
+    }
+    .feat-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--text); margin-bottom: 2px;
+    }
+    .feat-desc {
+      font-size: 12px; color: var(--muted); line-height: 1.5;
+    }
+
+    /* ── Screenshots mockup ── */
+    .screens-section {
+      width: 100%; max-width: 440px;
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); font-weight: 600; margin-bottom: 16px;
+      text-align: right;
+    }
+    .screens-scroll {
+      display: flex; gap: 12px;
+      overflow-x: auto; padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .screens-scroll::-webkit-scrollbar { display: none; }
+    .screen-card {
+      flex-shrink: 0;
+      width: 140px; height: 240px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--card);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px;
+    }
+    .screen-card-inner {
+      width: 100%; height: 100%;
+      background: linear-gradient(160deg, #1A1200 0%, #0D0900 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px; padding: 16px;
+    }
+    .screen-icon { font-size: 28px; }
+    .screen-label {
+      font-size: 11px; color: var(--muted); text-align: center; line-height: 1.4;
+    }
+
+    /* ── Steps ── */
+    .steps-section {
+      width: 100%; max-width: 440px;
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(197,163,109,0.08);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: var(--gold-dim); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--gold);
+      flex-shrink: 0;
+    }
+    .step-text { flex: 1; }
+    .step-title {
+      font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+    }
+    .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Bottom CTA ── */
+    .bottom-cta {
+      width: 100%; max-width: 440px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .bottom-cta-title {
+      font-size: 20px; font-weight: 800;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .bottom-cta-sub {
+      font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5;
+    }
+
+    /* ── Android notice ── */
+    .android-notice {
+      width: 100%; max-width: 440px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 24px;
+    }
+    .android-notice-icon { font-size: 24px; flex-shrink: 0; }
+    .android-notice-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .android-notice-text strong { color: var(--text); }
+
+    /* ── Footer ── */
+    .footer {
+      width: 100%; max-width: 440px;
+      text-align: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(197,163,109,0.08);
+    }
+    .footer-logo {
+      font-size: 14px; font-weight: 800;
+      letter-spacing: 2px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .footer-text { font-size: 11px; color: var(--muted); }
+
+    /* ── iOS detection overlay ── */
+    #ios-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      align-items: flex-end; justify-content: center;
+      padding: 20px;
+    }
+    #ios-modal.show { display: flex; }
+    .modal-sheet {
+      width: 100%; max-width: 440px;
+      background: #1C1812;
+      border: 1px solid var(--border);
+      border-radius: 28px 28px 20px 20px;
+      padding: 32px 24px 40px;
+      animation: slideUp 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 auto 24px;
+    }
+    .modal-title {
+      font-size: 20px; font-weight: 800;
+      color: var(--text); text-align: center; margin-bottom: 6px;
+    }
+    .modal-sub {
+      font-size: 13px; color: var(--muted);
+      text-align: center; margin-bottom: 28px; line-height: 1.5;
+    }
+    .modal-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+    .modal-step {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(197,163,109,0.06); border: 1px solid rgba(197,163,109,0.12);
+      border-radius: 14px; padding: 14px 16px;
+    }
+    .modal-step-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--gold-dim); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: var(--gold); flex-shrink: 0;
+    }
+    .modal-step-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .modal-step-text span { color: var(--gold); font-weight: 700; }
+    .modal-btn {
+      display: block; width: 100%;
+      padding: 16px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      border: none; cursor: pointer;
+      font-size: 16px; font-weight: 700;
+      color: #0D0900; text-decoration: none;
+      text-align: center;
+      box-shadow: 0 6px 24px rgba(197,163,109,0.3);
+    }
+    .modal-close {
+      display: block; width: 100%;
+      padding: 12px; border-radius: 14px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer; font-size: 14px; color: var(--muted);
+      margin-top: 10px;
+    }
+
+    /* ── Animations ── */
+    .fade-in {
+      opacity: 0; transform: translateY(20px);
+      animation: fadeInUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    .fade-in:nth-child(1) { animation-delay: 0.05s; }
+    .fade-in:nth-child(2) { animation-delay: 0.12s; }
+    .fade-in:nth-child(3) { animation-delay: 0.18s; }
+    .fade-in:nth-child(4) { animation-delay: 0.24s; }
+    .fade-in:nth-child(5) { animation-delay: 0.30s; }
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Pulse on icon ── */
+    .icon-pulse {
+      position: absolute; inset: -16px;
+      border-radius: 44px;
+      background: radial-gradient(circle, rgba(197,163,109,0.15) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.95); opacity: 0.6; }
+      50%       { transform: scale(1.05); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background glows -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- iOS install modal -->
+  <div id="ios-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">تثبيت التطبيق</div>
+      <div class="modal-sub">اتبع الخطوات التالية لتثبيت Signature Coffeehouse على جهازك</div>
+      <div class="modal-steps">
+        <div class="modal-step">
+          <div class="modal-step-num">1</div>
+          <div class="modal-step-text">اضغط على <span>تنزيل</span> وسيطلب iOS إذناً بتثبيت ملف التعريف</div>
+        </div>
+        <div class="modal-step">
+          <div class="modal-step-num">2</div>
+          <div class="modal-step-text">افتح <span>الإعدادات → عام → VPN وإدارة الأجهزة</span></div>
+        </div>
+        <div class="modal-step">
+          <div class="modal-step-num">3</div>
+          <div class="modal-step-text">اضغط على ملف التعريف ثم <span>تثبيت</span> وأدخل رمز الجهاز</div>
+        </div>
+        <div class="modal-step">
+          <div class="modal-step-num">4</div>
+          <div class="modal-step-text">ارجع للشاشة الرئيسية وستجد <span>Signature Coffeehouse</span> جاهزاً!</div>
+        </div>
+      </div>
+      <a id="modal-install-btn" class="modal-btn" href="#">تنزيل التطبيق الآن</a>
+      <button class="modal-close" onclick="closeModal()">إلغاء</button>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- Top bar -->
+    <div class="topbar fade-in">
+      <div class="topbar-pill">✦ متاح الآن للتنزيل</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="icon-wrap fade-in">
+        <div class="icon-pulse"></div>
+        <div class="icon-ring"></div>
+        <img
+          class="icon-img"
+          src="https://abedqwasmi.github.io/signeture/assets/icon.png"
+          alt="Signature Coffeehouse"
+          onerror="this.style.background='linear-gradient(135deg,#2A1E0A,#1A1200)'; this.style.display='flex';"
+        />
+      </div>
+
+      <h1 class="app-name fade-in">Signature<br /><span>Coffeehouse</span></h1>
+      <p class="app-sub fade-in">قهوتك المفضلة، في متناول يدك</p>
+
+      <div class="rating-row fade-in">
+        <span class="rating-stars">★★★★★</span>
+        <span class="rating-dot"></span>
+        <span class="rating-text">تطبيق مميز</span>
+        <span class="rating-dot"></span>
+        <span class="rating-text">مجاني</span>
+      </div>
+
+      <!-- Main install button -->
+      <a class="install-btn fade-in" href="#" onclick="handleInstall(event)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        تنزيل التطبيق
+      </a>
+
+      <div class="install-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        آمن 100% · لا يتطلب App Store
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon">☕</div>
+        <div>
+          <div class="feat-title">قائمة كاملة</div>
+          <div class="feat-desc">قهوة ساخنة، باردة، عصائر وأكثر</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">★</div>
+        <div>
+          <div class="feat-title">نقاط المكافآت</div>
+          <div class="feat-desc">اجمع النجوم واحصل على مشروبات مجانية</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🚀</div>
+        <div>
+          <div class="feat-title">توصيل سريع</div>
+          <div class="feat-desc">١٨–٢٥ دقيقة لباب منزلك</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎁</div>
+        <div>
+          <div class="feat-title">كوبونات حصرية</div>
+          <div class="feat-desc">عروض وخصومات يومية للأعضاء</div>
+        </div>
+      </div>
+      <div class="feat-card wide">
+        <div class="feat-icon" style="width:52px;height:52px;border-radius:16px;font-size:26px;">🌙</div>
+        <div>
+          <div class="feat-title">وضع ليلي فاخر</div>
+          <div class="feat-desc">تصميم عصري بالذهبي والأسود — مريح للعين في كل وقت</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to install steps -->
+    <div class="steps-section">
+      <div class="section-label">طريقة التثبيت</div>
+      <div class="step">
+        <div class="step-num">١</div>
+        <div class="step-text">
+          <div class="step-title">اضغط "تنزيل التطبيق"</div>
+          <div class="step-desc">سيطلب Safari إذناً لتنزيل ملف التعريف — اضغط سماح</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">٢</div>
+        <div class="step-text">
+          <div class="step-title">افتح الإعدادات</div>
+          <div class="step-desc">اذهب إلى الإعدادات ← عام ← VPN وإدارة الأجهزة</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">٣</div>
+        <div class="step-text">
+          <div class="step-title">ثبّت ملف التعريف</div>
+          <div class="step-desc">اضغط على Signature Coffeehouse ثم اضغط "تثبيت" وأدخل رمز الجهاز</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">٤</div>
+        <div class="step-text">
+          <div class="step-title">استمتع بالتطبيق! ☕</div>
+          <div class="step-desc">ستجد التطبيق على شاشتك الرئيسية تماماً كأي تطبيق عادي</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="bottom-cta">
+      <div class="bottom-cta-title">جاهز للطلب؟ ☕</div>
+      <div class="bottom-cta-sub">انضم لآلاف العملاء واستمتع بأفضل قهوة في المدينة</div>
+      <a class="install-btn" href="#" onclick="handleInstall(event)" style="max-width:100%;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        تنزيل مجاناً
+      </a>
+    </div>
+
+    <!-- Android notice -->
+    <div class="android-notice">
+      <div class="android-notice-icon">🤖</div>
+      <div class="android-notice-text">
+        <strong>مستخدمو Android؟</strong> يمكنكم فتح التطبيق مباشرة من المتصفح أو إضافته للشاشة الرئيسية من قائمة Chrome.
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-logo">✦ Signature</div>
+      <div class="footer-text">© 2026 Signature Coffeehouse · جميع الحقوق محفوظة</div>
+    </div>
+
+  </div>
+
+  <script>
+    const IPA_URL    = 'https://abedqwasmi.github.io/signeture/assets/SignatureCoffeehouse.ipa';
+    const PLIST_URL  = 'https://abedqwasmi.github.io/signeture/manifest.plist';
+    const ITMS_URL   = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(PLIST_URL);
+
+    function isIOS() {
+      return /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    function handleInstall(e) {
+      e.preventDefault();
+      if (isIOS()) {
+        openModal();
+      } else {
+        // Non-iOS: show instructions
+        alert('هذه الميزة متاحة على أجهزة iPhone و iPad فقط.\n\nيمكنك فتح هذا الرابط من Safari على جهاز iOS للتثبيت.');
+      }
+    }
+
+    function openModal() {
+      document.getElementById('modal-install-btn').href = ITMS_URL;
+      document.getElementById('ios-modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('ios-modal').classList.remove('show');
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('ios-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Auto-detect iOS and show appropriate UI
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!isIOS()) {
+        // Show a subtle banner for non-iOS users
+        const note = document.querySelector('.install-note');
+        if (note) {
+          note.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> افتح هذا الرابط من Safari على iPhone أو iPad';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

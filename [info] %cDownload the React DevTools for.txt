@@ -1,0 +1,121 @@
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[warning] "shadow*" style props are deprecated. Use "boxShadow".
+[info] Running application "main" with appParams:
+ [object Object] 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[warning] Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+[warning] props.pointerEvents is deprecated. Use style.pointerEvents
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[error] Uncaught TypeError: easing is not a function
+[info] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: http://localhost:8081/assets/?unstable_path=.%2Fnode_modules%2F%40expo%2Fvector-icons%2Fbuild%2Fvendor%2Freact-native-vector-icons%2FFonts/Feather.ttf
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+[error] The action 'NAVIGATE' with payload {"name":"MainTabs"} was not handled by any navigator.
+
+Do you have a screen named 'MainTabs'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
