@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { Colors, Typography, Radii, Shadows } from '../constants/theme';
+import { Typography, Radii, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 
 export function GoldButton({
@@ -13,7 +13,8 @@ export function GoldButton({
 }) {
   const { colors, isDark } = useApp();
   const C = colors;
-  const scale = useRef(new Animated.Value(1)).current;
+
+  const scale     = useRef(new Animated.Value(1)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
 
   const isPrimary = variant === 'primary';
@@ -34,9 +35,10 @@ export function GoldButton({
     ]).start();
   };
 
-  const iconMap = { '→': 'arrow-right', '←': 'arrow-left', '+': 'plus', '✓': 'check', '✕': 'x' };
+  const iconMap   = { '→': 'arrow-right', '←': 'arrow-left', '+': 'plus', '✓': 'check', '✕': 'x' };
   const featherIcon = icon ? (iconMap[icon] || icon) : null;
 
+  // Theme-aware text color
   const textColor = isPrimary
     ? (isDark ? '#0A0805' : '#FFFFFF')
     : isOutline
@@ -52,7 +54,7 @@ export function GoldButton({
         activeOpacity={1}
         style={[
           styles.base,
-          isPrimary && [styles.primary, { backgroundColor: C.primary }, Shadows.gold],
+          isPrimary && [{ backgroundColor: C.primary }, Shadows.gold],
           isOutline && [styles.outline, { borderColor: C.primary }],
           isGhost   && styles.ghost,
           size === 'sm' && styles.sm,
@@ -91,41 +93,6 @@ export function GoldButton({
     </Animated.View>
   );
 }
-          isPrimary && Shadows.gold,
-          style,
-        ]}
-      >
-        {loading ? (
-          <ActivityIndicator color={isPrimary ? Colors.background : Colors.primary} size="small" />
-        ) : (
-          <View style={styles.inner}>
-            <Text style={[
-              styles.label,
-              { color: textColor },
-              size === 'sm' && styles.labelSm,
-              size === 'lg' && styles.labelLg,
-            ]}>
-              {title}
-            </Text>
-            {featherIcon && (
-              <Animated.View style={[
-                styles.iconCircle,
-                isPrimary && styles.iconCirclePrimary,
-                { transform: [{ scale: iconScale }] },
-              ]}>
-                <Feather
-                  name={featherIcon}
-                  size={size === 'sm' ? 12 : size === 'lg' ? 16 : 14}
-                  color={textColor}
-                />
-              </Animated.View>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
 
 const styles = StyleSheet.create({
   base: {
@@ -135,7 +102,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 28,
   },
-  primary: {},
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
@@ -159,5 +125,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
-  iconCirclePrimary: { backgroundColor: 'rgba(0,0,0,0.18)' },
+  iconCirclePrimary: { backgroundColor: 'rgba(0,0,0,0.20)' },
 });
