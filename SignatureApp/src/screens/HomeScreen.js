@@ -1,211 +1,178 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  FlatList, Animated, Easing, Image,
+  FlatList, Animated, Easing, Image, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-import { Colors, DarkColors, LightColors, Typography, Radii, Spacing, Shadows } from '../constants/theme';
+import { DarkColors, Typography, Radii, Spacing, Shadows } from '../constants/theme';
 import { MenuCard } from '../components/MenuCard';
 import { useApp } from '../context/AppContext';
 import { MENU_ITEMS, REWARDS_TIERS } from '../constants/data';
 
-// ─── Cubic-bezier easing (no linear/ease-in-out) ─────────────────────────
+const { width: SCREEN_W } = Dimensions.get('window');
+
 const SPRING_FAST   = { damping: 14, stiffness: 300, useNativeDriver: true };
 const SPRING_SMOOTH = { damping: 10, stiffness: 200, useNativeDriver: true };
-const EASE_OUT      = Easing.bezier(0.22, 1, 0.36, 1);
 const EASE_EXPO     = Easing.bezier(0.16, 1, 0.3, 1);
+const EASE_OUT      = Easing.bezier(0.22, 1, 0.36, 1);
 
-// ─── Staggered fade-up entrance ──────────────────────────────────────────
 function useFadeUp(delay = 0) {
   const opacity    = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(28)).current;
+  const translateY = useRef(new Animated.Value(24)).current;
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(opacity,    { toValue: 1, duration: 700, delay, easing: EASE_EXPO, useNativeDriver: true }),
-      Animated.timing(translateY, { toValue: 0, duration: 700, delay, easing: EASE_EXPO, useNativeDriver: true }),
+      Animated.timing(opacity,    { toValue: 1, duration: 650, delay, easing: EASE_EXPO, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 650, delay, easing: EASE_EXPO, useNativeDriver: true }),
     ]).start();
   }, []);
   return { opacity, transform: [{ translateY }] };
 }
 
-// ─── Icon button with spring press ───────────────────────────────────────
-function IconBtn({ name, onPress, badge, colors, isDark }) {
+// ─── Circular progress ring drawn with animated arc ──────────────────────
+function RewardRing({ progress, stars, tierColor, isDark, C }) {
+  const animProg = useRef(new Animated.Value(0)).current;
+  const pulse    = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(animProg, {
+      toValue: progress / 100, duration: 1400,
+      easing: EASE_EXPO, useNativeDriver: false,
+    }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.06, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1,    duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const SIZE  = 180;
+  const THICK = 7;
+  const R     = (SIZE - THICK) / 2;
+  const CIRC  = 2 * Math.PI * R;
+
+  // We fake the arc with a conic-like gradient overlay + a thin track circle
+  // Since RN doesn't support SVG stroke-dasharray easily, we use 8 segment dots
+  const DOTS = 36;
+
+  return (
+    <Animated.View style={[styles.ringWrap, { transform: [{ scale: pulse }] }]}>
+      {/* Track ring */}
+      <View style={[
+        styles.ringTrack,
+        {
+          width: SIZE, height: SIZE, borderRadius: SIZE / 2,
+          borderWidth: THICK,
+          borderColor: isDark ? 'rgba(197,163,109,0.14)' : 'rgba(139,99,50,0.12)',
+        },
+      ]} />
+
+      {/* Progress dots */}
+      {Array.from({ length: DOTS }).map((_, i) => {
+        const angle = (i / DOTS) * 360 - 90;
+        const filled = (i / DOTS) <= (progress / 100);
+        const rad = (angle * Math.PI) / 180;
+        const cx = SIZE / 2 + (R) * Math.cos(rad) - 3;
+        const cy = SIZE / 2 + (R) * Math.sin(rad) - 3;
+        return (
+          <View
+            key={i}
+            style={{
+              position: 'absolute',
+              left: cx, top: cy,
+              width: 5, height: 5, borderRadius: 3,
+              backgroundColor: filled
+                ? (i % 3 === 0 ? tierColor : `${tierColor}BB`)
+                : (isDark ? 'rgba(197,163,109,0.10)' : 'rgba(139,99,50,0.08)'),
+            }}
+          />
+        );
+      })}
+
+      {/* Center content */}
+      <View style={styles.ringCenter}>
+        {/* Coffee cup illustration placeholder */}
+        <View style={[
+          styles.cupWrap,
+          {
+            backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.06)',
+            borderColor:      isDark ? 'rgba(197,163,109,0.20)' : 'rgba(139,99,50,0.15)',
+          },
+        ]}>
+          <Feather name="coffee" size={36} color={tierColor} />
+        </View>
+
+        {/* Stars count */}
+        <Text style={[styles.ringStars, { color: C.secondary }]}>{stars}</Text>
+        <Text style={[styles.ringStarsLabel, { color: tierColor }]}>★ نجمة</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Circular product pill (Starbucks-style) ─────────────────────────────
+function ProductPill({ item, onPress, isDark, C }) {
   const scale = useRef(new Animated.Value(1)).current;
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
         onPress={onPress}
-        onPressIn={() => Animated.spring(scale, { toValue: 0.88, ...SPRING_FAST }).start()}
+        onPressIn={() => Animated.spring(scale, { toValue: 0.92, ...SPRING_FAST }).start()}
         onPressOut={() => Animated.spring(scale, { toValue: 1,    ...SPRING_SMOOTH }).start()}
         activeOpacity={1}
-        style={[
-          styles.iconBtn,
-          {
-            backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.07)',
-            borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.15)',
-          },
-        ]}
+        style={styles.pill}
       >
-        <Feather name={name} size={18} color={colors.secondary} />
-        {badge > 0 && (
-          <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.badgeText, { color: isDark ? '#0A0805' : '#FFFFFF' }]}>{badge}</Text>
-          </View>
-        )}
+        {/* Circle image */}
+        <View style={[
+          styles.pillImgWrap,
+          {
+            backgroundColor: isDark ? '#1A1408' : '#F5F0E8',
+            borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.14)',
+          },
+        ]}>
+          <Image source={{ uri: item.image }} style={styles.pillImg} resizeMode="cover" />
+          {/* "جديد" badge */}
+          {item.isNew && (
+            <View style={[styles.pillBadge, { backgroundColor: C.primary }]}>
+              <Text style={[styles.pillBadgeText, { color: isDark ? '#0A0805' : '#FFF' }]}>جديد</Text>
+            </View>
+          )}
+        </View>
+        <Text style={[styles.pillName, { color: C.secondary }]} numberOfLines={2}>
+          {item.name}
+        </Text>
+        <Text style={[styles.pillPrice, { color: C.primary }]}>{item.price.toFixed(2)}ر</Text>
       </TouchableOpacity>
     </Animated.View>
   );
 }
 
 // ─── Quick action pill ────────────────────────────────────────────────────
-function QuickBtn({ iconName, label, onPress, colors, isDark }) {
+function QuickBtn({ iconName, label, onPress, C, isDark }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const glow  = useRef(new Animated.Value(0)).current;
-
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 0.90, ...SPRING_FAST }),
-      Animated.timing(glow, { toValue: 1, duration: 150, useNativeDriver: false }),
-    ]).start();
-  };
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, ...SPRING_SMOOTH }),
-      Animated.timing(glow, { toValue: 0, duration: 200, useNativeDriver: false }),
-    ]).start();
-    onPress?.();
-  };
-
-  const bgColor = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: isDark
-      ? ['rgba(197,163,109,0.08)', 'rgba(197,163,109,0.22)']
-      : ['rgba(139,99,50,0.07)',   'rgba(139,99,50,0.18)'],
-  });
-  const borderColor = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: isDark
-      ? ['rgba(197,163,109,0.16)', 'rgba(197,163,109,0.45)']
-      : ['rgba(139,99,50,0.14)',   'rgba(139,99,50,0.40)'],
-  });
-
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={() => Animated.spring(scale, { toValue: 0.90, ...SPRING_FAST }).start()}
+        onPressOut={() => {
+          Animated.spring(scale, { toValue: 1, ...SPRING_SMOOTH }).start();
+          onPress?.();
+        }}
         activeOpacity={1}
         style={styles.quickBtn}
       >
-        <Animated.View style={[styles.quickBtnIcon, { backgroundColor: bgColor, borderColor }]}>
-          <Feather name={iconName} size={20} color={colors.primary} />
-        </Animated.View>
-        <Text style={[styles.quickBtnLabel, { color: colors.textMuted }]}>{label}</Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
-// ─── New Arrival card ────────────────────────────────────────────────────
-function NewArrivalCard({ item, colors, isDark, onPress, onAddToCart }) {
-  const scale       = useRef(new Animated.Value(1)).current;
-  const imgScale    = useRef(new Animated.Value(1)).current;
-  const btnScale    = useRef(new Animated.Value(1)).current;
-
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={() => {
-          Animated.parallel([
-            Animated.spring(scale,    { toValue: 0.96, ...SPRING_FAST }),
-            Animated.spring(imgScale, { toValue: 1.06, ...SPRING_SMOOTH }),
-          ]).start();
-        }}
-        onPressOut={() => {
-          Animated.parallel([
-            Animated.spring(scale,    { toValue: 1, ...SPRING_SMOOTH }),
-            Animated.spring(imgScale, { toValue: 1, ...SPRING_SMOOTH }),
-          ]).start();
-        }}
-        activeOpacity={1}
-        style={[
-          styles.newCard,
+        <View style={[
+          styles.quickBtnIcon,
           {
-            backgroundColor: colors.cardBg,
-            borderColor:      colors.cardBorder,
-            shadowColor:      isDark ? '#C5A36D' : '#8B6332',
-            shadowOpacity:    isDark ? 0.12 : 0.06,
-            shadowRadius:     20,
-            shadowOffset:     { width: 0, height: 8 },
-            elevation:        6,
+            backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.07)',
+            borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.14)',
           },
-        ]}
-      >
-        {/* Image with zoom */}
-        <View style={styles.newCardImageWrap}>
-          <Animated.View style={{ transform: [{ scale: imgScale }], flex: 1 }}>
-            <Image source={{ uri: item.image }} style={styles.newCardImage} resizeMode="cover" />
-          </Animated.View>
-          <LinearGradient
-            colors={['transparent', isDark ? 'rgba(10,8,5,0.55)' : 'rgba(0,0,0,0.25)']}
-            style={styles.newCardOverlay}
-          />
-          {/* Tag pills */}
-          <View style={styles.newCardTags}>
-            {item.tags.slice(0, 2).map((tag) => (
-              <View
-                key={tag}
-                style={[
-                  styles.newCardTag,
-                  { backgroundColor: isDark ? 'rgba(10,8,5,0.72)' : 'rgba(0,0,0,0.55)' },
-                ]}
-              >
-                <Text style={styles.newCardTagText}>{tag}</Text>
-              </View>
-            ))}
-          </View>
+        ]}>
+          <Feather name={iconName} size={20} color={C.primary} />
         </View>
-
-        {/* Content */}
-        <View style={styles.newCardContent}>
-          <Text style={[styles.newCardName, { color: colors.secondary }]} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={[styles.newCardDesc, { color: colors.textMuted }]} numberOfLines={2}>
-            {item.description}
-          </Text>
-          <View style={styles.newCardFooter}>
-            {/* Add button */}
-            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-              <TouchableOpacity
-                onPress={() => {
-                  Animated.sequence([
-                    Animated.timing(btnScale, { toValue: 0.82, duration: 90, useNativeDriver: true }),
-                    Animated.spring(btnScale, { toValue: 1, ...SPRING_FAST }),
-                  ]).start();
-                  onAddToCart?.(item);
-                }}
-                style={[styles.newCardAddBtn, { backgroundColor: colors.primary, ...Shadows.gold }]}
-              >
-                <Feather name="plus" size={15} color={isDark ? '#0A0805' : '#FFFFFF'} />
-              </TouchableOpacity>
-            </Animated.View>
-            <View style={styles.newCardPriceRow}>
-              <Text style={[styles.newCardPrice, { color: colors.primary }]}>
-                {item.price.toFixed(2)}ر
-              </Text>
-              <View style={styles.newCardRating}>
-                <Text style={{ color: colors.primary, fontSize: 11 }}>★</Text>
-                <Text style={[styles.newCardRatingText, { color: colors.textMuted }]}>
-                  {item.rating}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <Text style={[styles.quickBtnLabel, { color: C.textMuted }]}>{label}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -214,9 +181,10 @@ function NewArrivalCard({ item, colors, isDark, onPress, onAddToCart }) {
 // ─── Main screen ──────────────────────────────────────────────────────────
 export function HomeScreen({ navigation }) {
   const { user, stars, cartCount, addToCart, notifications, colors, isDark, toggleTheme } = useApp();
+  const C = colors;
 
-  const featured   = MENU_ITEMS.filter((i) => i.isFeatured);
-  const newArrivals = MENU_ITEMS.filter((i) => i.isNew);
+  const featured    = MENU_ITEMS.filter((i) => i.isFeatured);
+  const newArrivals = MENU_ITEMS.filter((i) => i.isNew || i.isFeatured).slice(0, 6);
   const currentTier = REWARDS_TIERS.find((t) => stars >= t.min && stars <= t.max) || REWARDS_TIERS[1];
   const nextTier    = REWARDS_TIERS[REWARDS_TIERS.indexOf(currentTier) + 1];
   const progress    = nextTier
@@ -225,37 +193,13 @@ export function HomeScreen({ navigation }) {
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Parallax header glow
-  const glowTranslate = scrollY.interpolate({
-    inputRange: [0, 160], outputRange: [0, -60], extrapolate: 'clamp',
+  // Hero bg parallax
+  const heroBgScale = scrollY.interpolate({
+    inputRange: [-80, 0, 200], outputRange: [1.1, 1, 0.92], extrapolate: 'clamp',
   });
-  const glowOpacity = scrollY.interpolate({
-    inputRange: [0, 100], outputRange: [1, 0], extrapolate: 'clamp',
+  const heroBgOpacity = scrollY.interpolate({
+    inputRange: [0, 180], outputRange: [1, 0], extrapolate: 'clamp',
   });
-
-  // Floating reward card
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, { toValue: 1, duration: 3200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(floatAnim, { toValue: 0, duration: 3200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  const floatY = floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
-
-  // Shimmer loop
-  const shimmer = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 2400, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0, duration: 2400, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  const shimmerOpacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.72, 1] });
 
   // Theme toggle spin
   const themeSpin = useRef(new Animated.Value(0)).current;
@@ -271,275 +215,327 @@ export function HomeScreen({ navigation }) {
   });
 
   // Staggered entrance
-  const heroAnim     = useFadeUp(0);
-  const rewardAnim   = useFadeUp(100);
-  const quickAnim    = useFadeUp(200);
-  const couponAnim   = useFadeUp(280);
-  const featuredAnim = useFadeUp(360);
+  const topBarAnim  = useFadeUp(0);
+  const heroAnim    = useFadeUp(80);
+  const ctaAnim     = useFadeUp(180);
+  const pillsAnim   = useFadeUp(260);
+  const rewardAnim  = useFadeUp(320);
+  const quickAnim   = useFadeUp(400);
+  const featAnim    = useFadeUp(460);
 
   const hour     = new Date().getHours();
   const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
 
-  // Derived theme tokens
-  const C = colors;
-
   return (
     <View style={[styles.root, { backgroundColor: C.background }]}>
 
-      {/* ── Background hero glow ── */}
+      {/* ── Full-bleed hero background gradient ── */}
       <Animated.View
         style={[
-          styles.heroBg,
-          { opacity: glowOpacity, transform: [{ translateY: glowTranslate }] },
+          styles.heroBgWrap,
+          { opacity: heroBgOpacity, transform: [{ scale: heroBgScale }] },
         ]}
         pointerEvents="none"
       >
         <LinearGradient
-          colors={
-            isDark
-              ? ['rgba(197,163,109,0.22)', 'rgba(197,163,109,0.06)', 'transparent']
-              : ['rgba(197,163,109,0.16)', 'rgba(253,250,245,0.0)',  'transparent']
-          }
+          colors={isDark
+            ? ['rgba(197,163,109,0.28)', 'rgba(197,163,109,0.08)', 'transparent']
+            : ['rgba(197,163,109,0.18)', 'rgba(253,250,245,0.0)',  'transparent']}
           style={StyleSheet.absoluteFill}
           start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
         />
-        {/* Second radial accent blob */}
+        {/* Side accent blob */}
         <LinearGradient
-          colors={
-            isDark
-              ? ['rgba(232,201,122,0.10)', 'transparent']
-              : ['rgba(197,163,109,0.12)', 'transparent']
-          }
-          style={[StyleSheet.absoluteFill, { left: '40%', width: '80%' }]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          colors={isDark
+            ? ['rgba(232,201,122,0.14)', 'transparent']
+            : ['rgba(197,163,109,0.10)', 'transparent']}
+          style={[StyleSheet.absoluteFill, { left: '30%' }]}
+          start={{ x: 0, y: 0.2 }} end={{ x: 1, y: 0.8 }}
         />
       </Animated.View>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={{ paddingBottom: 110 }}
         scrollEventThrottle={16}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
       >
-        {/* ══════════════════════════════════════
-            HERO SECTION — Premium editorial header
-        ══════════════════════════════════════ */}
         <SafeAreaView edges={['top']}>
-          <Animated.View style={[styles.hero, heroAnim]}>
 
-            {/* ── Top bar ── */}
-            <View style={styles.topBar}>
-              {/* Left: action icons */}
-              <View style={styles.topBarLeft}>
-                <Animated.View style={{ transform: [{ rotate: themeRotate }] }}>
-                  <IconBtn
-                    name={isDark ? 'sun' : 'moon'}
-                    onPress={handleThemeToggle}
-                    colors={C} isDark={isDark}
-                  />
-                </Animated.View>
-                <IconBtn
-                  name="shopping-bag"
-                  onPress={() => navigation.navigate('Cart')}
-                  badge={cartCount}
-                  colors={C} isDark={isDark}
-                />
-                <IconBtn
-                  name="bell"
-                  onPress={() => navigation.navigate('Profile')}
-                  badge={notifications}
-                  colors={C} isDark={isDark}
-                />
-              </View>
-
-              {/* Right: greeting */}
-              <View style={styles.topBarRight}>
-                <Text style={[styles.greetingText, { color: C.textMuted }]}>{greeting}</Text>
-                <Text style={[styles.nameText, { color: C.secondary }]}>
-                  {user?.name || 'زائر'}
-                </Text>
-              </View>
+          {/* ══════════════════════════════════════
+              TOP BAR — greeting left, icons right
+          ══════════════════════════════════════ */}
+          <Animated.View style={[styles.topBar, topBarAnim]}>
+            {/* Left: greeting */}
+            <View>
+              <Text style={[styles.greetingText, { color: C.textMuted }]}>{greeting}</Text>
+              <Text style={[styles.nameText, { color: C.secondary }]}>
+                {user?.name || 'زائر'}
+              </Text>
             </View>
 
-            {/* ── Hero headline block ── */}
-            <View style={styles.heroHeadline}>
-              {/* Eyebrow tag */}
-              <View style={[
-                styles.eyebrowTag,
-                {
-                  backgroundColor: isDark ? 'rgba(197,163,109,0.12)' : 'rgba(139,99,50,0.08)',
-                  borderColor:      isDark ? 'rgba(197,163,109,0.28)' : 'rgba(139,99,50,0.20)',
-                },
-              ]}
-              >
-                <View style={[styles.eyebrowDot, { backgroundColor: C.primary }]} />
-                <Text style={[styles.eyebrowText, { color: C.primary }]}>
-                  SIGNATURE COFFEEHOUSE
-                </Text>
-              </View>
+            {/* Right: icon cluster */}
+            <View style={styles.topBarIcons}>
+              {/* Theme toggle */}
+              <Animated.View style={{ transform: [{ rotate: themeRotate }] }}>
+                <TouchableOpacity
+                  onPress={handleThemeToggle}
+                  style={[styles.iconBtn, {
+                    backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.07)',
+                    borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.14)',
+                  }]}
+                >
+                  <Feather name={isDark ? 'sun' : 'moon'} size={17} color={C.primary} />
+                </TouchableOpacity>
+              </Animated.View>
 
-              {/* Main headline — large, editorial */}
+              {/* Cart */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Cart')}
+                style={[styles.iconBtn, {
+                  backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.07)',
+                  borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.14)',
+                }]}
+              >
+                <Feather name="shopping-bag" size={17} color={C.secondary} />
+                {cartCount > 0 && (
+                  <View style={[styles.badge, { backgroundColor: C.primary }]}>
+                    <Text style={[styles.badgeText, { color: isDark ? '#0A0805' : '#FFF' }]}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Profile */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Profile')}
+                style={[styles.iconBtn, {
+                  backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.07)',
+                  borderColor:      isDark ? 'rgba(197,163,109,0.18)' : 'rgba(139,99,50,0.14)',
+                }]}
+              >
+                <Feather name="user" size={17} color={C.secondary} />
+                {notifications > 0 && (
+                  <View style={[styles.badge, { backgroundColor: C.primary }]}>
+                    <Text style={[styles.badgeText, { color: isDark ? '#0A0805' : '#FFF' }]}>{notifications}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+
+          {/* ══════════════════════════════════════
+              HERO — Centered reward ring + headline
+              (Starbucks-style spatial composition)
+          ══════════════════════════════════════ */}
+          <Animated.View style={[styles.heroSection, heroAnim]}>
+
+            {/* Eyebrow */}
+            <View style={[styles.eyebrow, {
+              backgroundColor: isDark ? 'rgba(197,163,109,0.10)' : 'rgba(139,99,50,0.07)',
+              borderColor:      isDark ? 'rgba(197,163,109,0.25)' : 'rgba(139,99,50,0.18)',
+            }]}>
+              <View style={[styles.eyebrowDot, { backgroundColor: C.primary }]} />
+              <Text style={[styles.eyebrowText, { color: C.primary }]}>SIGNATURE COFFEEHOUSE</Text>
+            </View>
+
+            {/* Centered reward ring — the hero visual */}
+            <RewardRing
+              progress={progress}
+              stars={stars}
+              tierColor={currentTier.color}
+              isDark={isDark}
+              C={C}
+            />
+
+            {/* Tier name below ring */}
+            <View style={[styles.tierRow, {
+              backgroundColor: isDark ? 'rgba(197,163,109,0.08)' : 'rgba(139,99,50,0.06)',
+              borderColor:      isDark ? 'rgba(197,163,109,0.20)' : 'rgba(139,99,50,0.14)',
+            }]}>
+              <Text style={[styles.tierText, { color: currentTier.color }]}>◆ عضو {currentTier.name}</Text>
+              {nextTier && (
+                <Text style={[styles.tierNextText, { color: C.textMuted }]}>
+                  {nextTier.min - stars} نجمة للوصول إلى{' '}
+                  <Text style={{ color: nextTier.color }}>{nextTier.name}</Text>
+                </Text>
+              )}
+            </View>
+
+            {/* Headline */}
+            <View style={styles.headlineWrap}>
               <Text style={[styles.heroTitle, { color: C.secondary }]}>
-                قهوتك{'\n'}
+                قهوتك{' '}
                 <Text style={{ color: C.primary }}>الآن</Text>
               </Text>
-
-              {/* Sub-copy */}
               <Text style={[styles.heroSub, { color: C.textMuted }]}>
                 اطلب من أي مكان · توصيل خلال ٢٠ دقيقة
               </Text>
-
-              {/* CTA row */}
-              <View style={styles.heroCTARow}>
-                {/* Primary CTA — pill button-in-button */}
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Menu')}
-                  activeOpacity={0.88}
-                  style={[
-                    styles.ctaPrimary,
-                    { backgroundColor: C.primary, ...Shadows.gold },
-                  ]}
-                >
-                  <Text style={[styles.ctaPrimaryText, { color: isDark ? '#0A0805' : '#FFFFFF' }]}>
-                    اطلب الآن
-                  </Text>
-                  {/* Nested icon circle */}
-                  <View style={[
-                    styles.ctaIconCircle,
-                    { backgroundColor: isDark ? 'rgba(10,8,5,0.20)' : 'rgba(255,255,255,0.25)' },
-                  ]}
-                  >
-                    <Feather name="arrow-left" size={14} color={isDark ? '#0A0805' : '#FFFFFF'} />
-                  </View>
-                </TouchableOpacity>
-
-                {/* Secondary CTA — ghost pill */}
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Menu')}
-                  activeOpacity={0.85}
-                  style={[
-                    styles.ctaSecondary,
-                    {
-                      borderColor: isDark ? 'rgba(197,163,109,0.30)' : 'rgba(139,99,50,0.22)',
-                    },
-                  ]}
-                >
-                  <Text style={[styles.ctaSecondaryText, { color: C.primary }]}>القائمة</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* ── Bento stats strip ── */}
-            <View style={styles.statsStrip}>
-              {[
-                { value: `${stars}`, unit: '★', label: 'نجومك' },
-                { value: '٢٠',      unit: 'د',  label: 'توصيل' },
-                { value: '٣',       unit: '',   label: 'كوبونات' },
-              ].map((stat, i) => (
-                <React.Fragment key={stat.label}>
-                  {i > 0 && (
-                    <View style={[styles.statDivider, { backgroundColor: isDark ? 'rgba(197,163,109,0.15)' : 'rgba(139,99,50,0.12)' }]} />
-                  )}
-                  <View style={styles.statItem}>
-                    <Text style={[styles.statValue, { color: C.secondary }]}>
-                      {stat.value}
-                      <Text style={{ color: C.primary, fontSize: 14 }}>{stat.unit}</Text>
-                    </Text>
-                    <Text style={[styles.statLabel, { color: C.textMuted }]}>{stat.label}</Text>
-                  </View>
-                </React.Fragment>
-              ))}
             </View>
 
           </Animated.View>
+
+          {/* ══════════════════════════════════════
+              CTA BUTTONS
+          ══════════════════════════════════════ */}
+          <Animated.View style={[styles.ctaRow, ctaAnim]}>
+            {/* Primary */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Menu')}
+              activeOpacity={0.88}
+              style={[styles.ctaPrimary, { backgroundColor: C.primary }, Shadows.gold]}
+            >
+              <Text style={[styles.ctaPrimaryText, { color: isDark ? '#0A0805' : '#FFF' }]}>
+                اطلب الآن
+              </Text>
+              <View style={[styles.ctaIconCircle, {
+                backgroundColor: isDark ? 'rgba(10,8,5,0.20)' : 'rgba(255,255,255,0.25)',
+              }]}>
+                <Feather name="arrow-left" size={14} color={isDark ? '#0A0805' : '#FFF'} />
+              </View>
+            </TouchableOpacity>
+
+            {/* Secondary */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Menu')}
+              activeOpacity={0.85}
+              style={[styles.ctaSecondary, {
+                borderColor: isDark ? 'rgba(197,163,109,0.32)' : 'rgba(139,99,50,0.24)',
+              }]}
+            >
+              <Text style={[styles.ctaSecondaryText, { color: C.primary }]}>القائمة</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* ══════════════════════════════════════
+              STATS STRIP
+          ══════════════════════════════════════ */}
+          <Animated.View style={[styles.statsStrip, ctaAnim, {
+            borderColor: isDark ? 'rgba(197,163,109,0.12)' : 'rgba(139,99,50,0.10)',
+            backgroundColor: isDark ? 'rgba(197,163,109,0.04)' : 'rgba(139,99,50,0.03)',
+          }]}>
+            {[
+              { value: `${stars}`, unit: '★', label: 'نجومك' },
+              { value: '٢٠',      unit: 'د',  label: 'توصيل' },
+              { value: '٣',       unit: '',   label: 'كوبونات' },
+            ].map((stat, i) => (
+              <React.Fragment key={stat.label}>
+                {i > 0 && (
+                  <View style={[styles.statDivider, {
+                    backgroundColor: isDark ? 'rgba(197,163,109,0.14)' : 'rgba(139,99,50,0.10)',
+                  }]} />
+                )}
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: C.secondary }]}>
+                    {stat.value}
+                    <Text style={{ color: C.primary, fontSize: 13 }}>{stat.unit}</Text>
+                  </Text>
+                  <Text style={[styles.statLabel, { color: C.textMuted }]}>{stat.label}</Text>
+                </View>
+              </React.Fragment>
+            ))}
+          </Animated.View>
+
         </SafeAreaView>
 
         {/* ══════════════════════════════════════
-            REWARDS CARD — Floating dark card
+            "جرّبت هذه؟" — Circular product pills
+            (Starbucks "Have you tried these?" row)
         ══════════════════════════════════════ */}
-        <Animated.View
-          style={[
-            styles.rewardOuter,
-            rewardAnim,
-            { transform: [{ translateY: floatY }] },
-          ]}
-        >
-          {/* Outer shell — double-bezel */}
-          <View style={[
-            styles.rewardShell,
-            {
-              backgroundColor: isDark ? 'rgba(197,163,109,0.06)' : 'rgba(139,99,50,0.05)',
-              borderColor:      isDark ? 'rgba(197,163,109,0.20)' : 'rgba(139,99,50,0.16)',
-            },
-          ]}
-          >
-            <Animated.View style={{ opacity: shimmerOpacity }}>
-              <LinearGradient
-                colors={isDark
-                  ? ['#2C1E0A', '#1A1200', '#0E0900']
-                  : ['#4A3015', '#3A2410', '#2C1C08']}
-                style={styles.rewardInner}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              >
-                {/* Top row */}
-                <View style={styles.rewardTop}>
-                  <TouchableOpacity
-                    style={styles.rewardViewBtn}
-                    onPress={() => navigation.navigate('Rewards')}
-                  >
-                    <Feather name="chevron-left" size={13} color={DarkColors.primary} />
-                    <Text style={styles.rewardViewBtnText}>عرض</Text>
-                  </TouchableOpacity>
-                  <View style={styles.rewardTopRight}>
-                    <View style={styles.rewardEyebrow}>
-                      <Text style={styles.rewardEyebrowText}>SIGNATURE REWARDS</Text>
-                    </View>
-                    <Text style={[styles.rewardTierText, { color: currentTier.color }]}>
-                      ◆ عضو {currentTier.name}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Stars */}
-                <View style={styles.starsRow}>
-                  <Text style={styles.starsSuffix}>نجمة ★</Text>
-                  <Text style={styles.starsNum}>{stars}</Text>
-                </View>
-
-                {/* Progress */}
-                {nextTier && (
-                  <View>
-                    <View style={styles.progressTrack}>
-                      <View style={[styles.progressFill, { width: `${Math.min(progress, 100)}%` }]} />
-                    </View>
-                    <Text style={styles.progressLabel}>
-                      <Text style={{ color: nextTier.color }}>{nextTier.name}</Text>
-                      {'  '}للوصول إلى {nextTier.min - stars} نجمة
-                    </Text>
-                  </View>
-                )}
-              </LinearGradient>
-            </Animated.View>
+        <Animated.View style={pillsAnim}>
+          <View style={[styles.sectionHeader, { paddingHorizontal: Spacing.lg }]}>
+            <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
+              <Text style={[styles.seeAll, { color: C.primary }]}>عرض الكل</Text>
+            </TouchableOpacity>
+            <Text style={[styles.sectionTitle, { color: C.secondary }]}>جرّبت هذه؟</Text>
           </View>
+
+          <FlatList
+            data={newArrivals}
+            keyExtractor={(i) => i.id}
+            horizontal
+            inverted
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: Spacing.lg, gap: 16, paddingBottom: 4 }}
+            renderItem={({ item }) => (
+              <ProductPill
+                item={item}
+                onPress={() => navigation.navigate('ItemDetail', { item })}
+                isDark={isDark}
+                C={C}
+              />
+            )}
+          />
+        </Animated.View>
+
+        {/* ══════════════════════════════════════
+            REWARDS CARD — Compact inline version
+        ══════════════════════════════════════ */}
+        <Animated.View style={[rewardAnim, { paddingHorizontal: Spacing.lg, marginTop: Spacing.lg }]}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Rewards')}
+            activeOpacity={0.88}
+          >
+            <LinearGradient
+              colors={isDark ? ['#2C1E0A', '#1A1200', '#0E0900'] : ['#4A3015', '#3A2410', '#2C1C08']}
+              style={[styles.rewardCard, { borderColor: isDark ? 'rgba(197,163,109,0.22)' : 'rgba(197,163,109,0.30)' }]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            >
+              {/* Left: info */}
+              <View style={{ flex: 1 }}>
+                <View style={styles.rewardEyebrow}>
+                  <Text style={styles.rewardEyebrowText}>SIGNATURE REWARDS</Text>
+                </View>
+                <Text style={[styles.rewardTierText, { color: currentTier.color }]}>
+                  ◆ عضو {currentTier.name}
+                </Text>
+                {nextTier && (
+                  <Text style={styles.rewardNextText}>
+                    {nextTier.min - stars} نجمة للوصول إلى{' '}
+                    <Text style={{ color: nextTier.color }}>{nextTier.name}</Text>
+                  </Text>
+                )}
+                {/* Mini progress bar */}
+                <View style={styles.rewardProgressTrack}>
+                  <Animated.View
+                    style={[styles.rewardProgressFill, {
+                      width: `${Math.min(progress, 100)}%`,
+                      backgroundColor: currentTier.color,
+                    }]}
+                  />
+                </View>
+              </View>
+
+              {/* Right: big stars number */}
+              <View style={styles.rewardRight}>
+                <Text style={styles.rewardStarsNum}>{stars}</Text>
+                <Text style={styles.rewardStarsLabel}>★ نجمة</Text>
+              </View>
+
+              {/* Arrow */}
+              <View style={styles.rewardArrow}>
+                <Feather name="chevron-left" size={16} color="rgba(197,163,109,0.6)" />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* ══════════════════════════════════════
             QUICK ACTIONS
         ══════════════════════════════════════ */}
         <Animated.View style={[styles.quickActions, quickAnim]}>
-          <QuickBtn iconName="message-circle" label="الدردشة"   onPress={() => navigation.navigate('Chat')}    colors={C} isDark={isDark} />
-          <QuickBtn iconName="map-pin"        label="الفروع"    onPress={() => {}}                             colors={C} isDark={isDark} />
-          <QuickBtn iconName="tag"            label="الكوبونات" onPress={() => navigation.navigate('Coupons')} colors={C} isDark={isDark} />
-          <QuickBtn iconName="package"        label="اطلب الآن" onPress={() => navigation.navigate('Menu')}   colors={C} isDark={isDark} />
+          <QuickBtn iconName="message-circle" label="الدردشة"   onPress={() => navigation.navigate('Chat')}    C={C} isDark={isDark} />
+          <QuickBtn iconName="map-pin"        label="الفروع"    onPress={() => {}}                             C={C} isDark={isDark} />
+          <QuickBtn iconName="tag"            label="الكوبونات" onPress={() => navigation.navigate('Coupons')} C={C} isDark={isDark} />
+          <QuickBtn iconName="package"        label="اطلب الآن" onPress={() => navigation.navigate('Menu')}   C={C} isDark={isDark} />
         </Animated.View>
 
         {/* ══════════════════════════════════════
             COUPON BANNER
         ══════════════════════════════════════ */}
-        <Animated.View style={couponAnim}>
+        <Animated.View style={[{ paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg }, quickAnim]}>
           <TouchableOpacity
             onPress={() => navigation.navigate('Coupons')}
             activeOpacity={0.88}
@@ -557,16 +553,16 @@ export function HomeScreen({ navigation }) {
                 <Text style={styles.couponTitle}>لديك 3 كوبونات نشطة</Text>
                 <Text style={styles.couponSub}>اضغط لعرض خصوماتك واسترداد المكافآت</Text>
               </View>
-              <Feather name="chevron-left" size={18} color="rgba(255,255,255,0.45)" />
+              <Feather name="chevron-left" size={18} color="rgba(255,255,255,0.4)" />
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
 
         {/* ══════════════════════════════════════
-            FEATURED — "مختارات اليوم"
+            FEATURED — مختارات اليوم
         ══════════════════════════════════════ */}
-        <Animated.View style={featuredAnim}>
-          <View style={styles.sectionHeader}>
+        <Animated.View style={featAnim}>
+          <View style={[styles.sectionHeader, { paddingHorizontal: Spacing.lg }]}>
             <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
               <Text style={[styles.seeAll, { color: C.primary }]}>عرض الكل</Text>
             </TouchableOpacity>
@@ -578,7 +574,7 @@ export function HomeScreen({ navigation }) {
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.featuredList}
+            contentContainerStyle={{ paddingHorizontal: Spacing.lg, gap: 14, paddingBottom: Spacing.md }}
             renderItem={({ item }) => (
               <MenuCard
                 item={item}
@@ -592,105 +588,59 @@ export function HomeScreen({ navigation }) {
         {/* ══════════════════════════════════════
             DELIVERY BANNER
         ══════════════════════════════════════ */}
-        <View style={[
-          styles.deliveryCard,
-          {
-            backgroundColor: C.cardBg,
-            borderColor:      C.cardBorder,
-          },
-        ]}
-        >
-          <View style={styles.deliveryCardInner}>
+        <View style={[styles.deliveryCard, {
+          marginHorizontal: Spacing.lg,
+          backgroundColor: C.cardBg,
+          borderColor:     C.cardBorder,
+        }]}>
+          <View style={styles.deliveryInner}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Menu')}
-              activeOpacity={0.88}
-              style={[styles.orderNowBtn, { backgroundColor: C.primary, ...Shadows.gold }]}
+              style={[styles.orderNowBtn, { backgroundColor: C.primary }, Shadows.gold]}
             >
-              <Text style={[styles.orderNowText, { color: isDark ? '#0A0805' : '#FFFFFF' }]}>
-                اطلب الآن
-              </Text>
+              <Text style={[styles.orderNowText, { color: isDark ? '#0A0805' : '#FFF' }]}>اطلب الآن</Text>
             </TouchableOpacity>
-            <View style={styles.deliveryRight}>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text style={[styles.deliveryTitle, { color: C.secondary }]}>توصيل سريع</Text>
-              <View style={styles.etaRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Feather name="zap" size={12} color={C.primary} />
-                <Text style={[styles.deliveryEta, { color: C.primary }]}> ١٨–٢٥ دقيقة</Text>
+                <Text style={[styles.deliveryEta, { color: C.primary }]}>١٨–٢٥ دقيقة</Text>
               </View>
               <Text style={[styles.deliverySub, { color: C.textMuted }]}>بناءً على عنوانك المحفوظ</Text>
             </View>
           </View>
         </View>
 
-        {/* ══════════════════════════════════════
-            NEW ARRIVALS — "وصل حديثاً"
-        ══════════════════════════════════════ */}
-        <View style={[styles.sectionHeader, { marginTop: Spacing.md }]}>
-          <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-            <Text style={[styles.seeAll, { color: C.primary }]}>عرض الكل</Text>
-          </TouchableOpacity>
-          <Text style={[styles.sectionTitle, { color: C.secondary }]}>وصل حديثاً</Text>
-        </View>
-
-        <FlatList
-          data={newArrivals}
-          keyExtractor={(i) => i.id}
-          horizontal
-          inverted
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingLeft: Spacing.lg, gap: 14, marginBottom: Spacing.lg }}
-          renderItem={({ item }) => (
-            <NewArrivalCard
-              item={item}
-              colors={C}
-              isDark={isDark}
-              onPress={() => navigation.navigate('ItemDetail', { item })}
-              onAddToCart={addToCart}
-            />
-          )}
-        />
-
-        <View style={{ height: 100 }} />
       </Animated.ScrollView>
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────
+const { StyleSheet } = require('react-native');
+
 const styles = StyleSheet.create({
   root:   { flex: 1 },
-  scroll: { paddingHorizontal: Spacing.lg },
 
-  // ── Background glow ──
-  heroBg: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 320,
-    pointerEvents: 'none',
-  },
-
-  // ── Hero ──
-  hero: {
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.lg,
+  // Background glow
+  heroBgWrap: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 480,
   },
 
   // Top bar
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: Spacing.lg,
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm, paddingBottom: Spacing.md,
   },
-  topBarLeft:  { flexDirection: 'row', gap: 10 },
-  topBarRight: { alignItems: 'flex-end' },
-  greetingText: {
-    fontSize: Typography.xs, letterSpacing: 1.5, marginBottom: 2, textAlign: 'right',
-  },
+  greetingText: { fontSize: Typography.xs, letterSpacing: 1.5, marginBottom: 2 },
   nameText: {
     fontSize: Typography.xl, fontWeight: Typography.black,
-    letterSpacing: Typography.tight, textAlign: 'right',
+    letterSpacing: Typography.tight,
   },
-
+  topBarIcons: { flexDirection: 'row', gap: 8 },
   iconBtn: {
-    width: 42, height: 42, borderRadius: 21,
+    width: 40, height: 40, borderRadius: 20,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
   badge: {
@@ -700,32 +650,67 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 9, fontWeight: Typography.bold },
 
-  // Hero headline
-  heroHeadline: { marginBottom: Spacing.lg },
-
-  eyebrowTag: {
-    flexDirection: 'row', alignItems: 'center', gap: 7,
-    alignSelf: 'flex-end',
+  // Hero section
+  heroSection: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  eyebrow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
     borderWidth: 1, borderRadius: Radii.pill,
-    paddingHorizontal: 12, paddingVertical: 5, marginBottom: 16,
+    paddingHorizontal: 12, paddingVertical: 5,
+    marginBottom: Spacing.lg,
   },
   eyebrowDot:  { width: 5, height: 5, borderRadius: 3 },
-  eyebrowText: { fontSize: 9, letterSpacing: 2.5, fontWeight: Typography.semibold },
+  eyebrowText: { fontSize: 9, letterSpacing: 2.8, fontWeight: Typography.semibold },
 
+  // Reward ring
+  ringWrap: {
+    width: 180, height: 180,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  ringTrack: { position: 'absolute' },
+  ringCenter: {
+    position: 'absolute',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  cupWrap: {
+    width: 76, height: 76, borderRadius: 38,
+    borderWidth: 1.5, alignItems: 'center', justifyContent: 'center',
+    marginBottom: 6,
+  },
+  ringStars: {
+    fontSize: 28, fontWeight: Typography.black, letterSpacing: -1, lineHeight: 30,
+  },
+  ringStarsLabel: { fontSize: Typography.xs, fontWeight: Typography.semibold, letterSpacing: 1 },
+
+  // Tier row
+  tierRow: {
+    alignItems: 'center', borderWidth: 1, borderRadius: Radii.pill,
+    paddingHorizontal: 18, paddingVertical: 8,
+    marginBottom: Spacing.lg, gap: 2,
+  },
+  tierText:     { fontSize: Typography.sm, fontWeight: Typography.bold },
+  tierNextText: { fontSize: Typography.xs, textAlign: 'center' },
+
+  // Headline
+  headlineWrap: { alignItems: 'center' },
   heroTitle: {
-    fontSize: 52, fontWeight: Typography.black,
-    lineHeight: 58, textAlign: 'right', letterSpacing: -1.5,
-    marginBottom: 12,
+    fontSize: 46, fontWeight: Typography.black,
+    letterSpacing: -1.5, textAlign: 'center', marginBottom: 8,
   },
   heroSub: {
-    fontSize: Typography.sm, textAlign: 'right',
-    letterSpacing: 0.3, marginBottom: 24, lineHeight: 20,
+    fontSize: Typography.sm, textAlign: 'center',
+    letterSpacing: 0.3, lineHeight: 20,
   },
 
-  // CTA row
-  heroCTARow: {
-    flexDirection: 'row', justifyContent: 'flex-end',
+  // CTA
+  ctaRow: {
+    flexDirection: 'row', justifyContent: 'center',
     alignItems: 'center', gap: 12,
+    paddingHorizontal: Spacing.lg, marginBottom: Spacing.md,
   },
   ctaPrimary: {
     flexDirection: 'row', alignItems: 'center',
@@ -746,151 +731,105 @@ const styles = StyleSheet.create({
   // Stats strip
   statsStrip: {
     flexDirection: 'row', alignItems: 'center',
-    borderRadius: Radii.xl, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(197,163,109,0.14)',
-    backgroundColor: 'rgba(197,163,109,0.04)',
-    paddingVertical: 14,
+    marginHorizontal: Spacing.lg, borderRadius: Radii.xl,
+    borderWidth: 1, paddingVertical: 14, marginBottom: Spacing.xl,
   },
-  statItem:    { flex: 1, alignItems: 'center' },
-  statValue:   { fontSize: Typography['2xl'], fontWeight: Typography.black, letterSpacing: -1 },
-  statLabel:   { fontSize: Typography.xs, letterSpacing: 1, marginTop: 2 },
-  statDivider: { width: 1, height: 32 },
+  statItem:   { flex: 1, alignItems: 'center' },
+  statValue:  { fontSize: Typography['2xl'], fontWeight: Typography.black, letterSpacing: -1 },
+  statLabel:  { fontSize: Typography.xs, letterSpacing: 1, marginTop: 2 },
+  statDivider:{ width: 1, height: 32 },
 
-  // ── Reward card ──
-  rewardOuter: { marginBottom: Spacing.lg },
-  rewardShell: {
-    borderRadius: Radii['2xl'], borderWidth: 1, padding: 2,
+  // Product pills
+  pill: { width: 88, alignItems: 'center' },
+  pillImgWrap: {
+    width: 76, height: 76, borderRadius: 38,
+    borderWidth: 2, overflow: 'hidden',
+    marginBottom: 8,
+    shadowColor: '#000', shadowOpacity: 0.12,
+    shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
   },
-  rewardInner: { borderRadius: Radii.xl - 2, padding: Spacing.lg },
-  rewardTop: {
+  pillImg: { width: '100%', height: '100%' },
+  pillBadge: {
+    position: 'absolute', bottom: 2, left: 0, right: 0,
+    alignItems: 'center', paddingVertical: 2,
+  },
+  pillBadgeText: { fontSize: 8, fontWeight: Typography.bold, letterSpacing: 0.5 },
+  pillName: {
+    fontSize: 11, fontWeight: Typography.semibold,
+    textAlign: 'center', lineHeight: 14, marginBottom: 3,
+  },
+  pillPrice: { fontSize: 11, fontWeight: Typography.bold },
+
+  // Section headers
+  sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'flex-start', marginBottom: 10,
+    alignItems: 'center', marginBottom: 14,
   },
-  rewardTopRight: { alignItems: 'flex-end' },
-  rewardEyebrow: {
-    backgroundColor: 'rgba(197,163,109,0.18)', borderRadius: Radii.pill,
-    paddingHorizontal: 10, paddingVertical: 3, marginBottom: 5,
-  },
-  rewardEyebrowText: {
-    color: '#C5A36D', fontSize: 8, letterSpacing: 3, fontWeight: Typography.bold,
-  },
-  rewardTierText: { fontSize: Typography.md, fontWeight: Typography.bold, textAlign: 'right' },
-  rewardViewBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(197,163,109,0.16)', borderRadius: Radii.pill,
-    paddingHorizontal: 14, paddingVertical: 8,
-  },
-  rewardViewBtnText: { color: '#C5A36D', fontSize: Typography.sm, fontWeight: Typography.semibold },
-  starsRow: {
-    flexDirection: 'row', alignItems: 'baseline',
-    justifyContent: 'flex-end', marginBottom: 14,
-  },
-  starsNum: {
-    color: '#C5A36D', fontSize: Typography['4xl'],
-    fontWeight: Typography.black, letterSpacing: -2,
-  },
-  starsSuffix: { color: '#D4B98A', fontSize: Typography.lg, fontWeight: Typography.medium },
-  progressTrack: {
-    height: 4, backgroundColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 2, marginBottom: 7, overflow: 'hidden',
-  },
-  progressFill: { height: '100%', backgroundColor: '#C5A36D', borderRadius: 2 },
-  progressLabel: { color: 'rgba(255,255,255,0.45)', fontSize: Typography.xs, textAlign: 'right' },
+  sectionTitle: { fontSize: Typography.lg, fontWeight: Typography.bold, textAlign: 'right' },
+  seeAll:       { fontSize: Typography.sm, fontWeight: Typography.medium },
 
-  // ── Quick actions ──
-  quickActions: {
-    flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.lg,
+  // Reward card
+  rewardCard: {
+    borderRadius: Radii.xl, borderWidth: 1,
+    padding: Spacing.lg, flexDirection: 'row',
+    alignItems: 'center', gap: 14,
   },
-  quickBtn:      { alignItems: 'center', gap: 8 },
+  rewardEyebrow: {
+    backgroundColor: 'rgba(197,163,109,0.16)', borderRadius: Radii.pill,
+    paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-end', marginBottom: 5,
+  },
+  rewardEyebrowText: { color: '#C5A36D', fontSize: 8, letterSpacing: 3, fontWeight: Typography.bold },
+  rewardTierText:    { color: '#C5A36D', fontSize: Typography.md, fontWeight: Typography.bold, textAlign: 'right', marginBottom: 2 },
+  rewardNextText:    { color: 'rgba(255,255,255,0.45)', fontSize: Typography.xs, textAlign: 'right', marginBottom: 8 },
+  rewardProgressTrack: {
+    height: 3, backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 2, overflow: 'hidden',
+  },
+  rewardProgressFill: { height: '100%', borderRadius: 2 },
+  rewardRight: { alignItems: 'center' },
+  rewardStarsNum: {
+    color: '#C5A36D', fontSize: 36, fontWeight: Typography.black, letterSpacing: -1.5,
+  },
+  rewardStarsLabel: { color: '#D4B98A', fontSize: Typography.sm, fontWeight: Typography.medium },
+  rewardArrow: { paddingLeft: 4 },
+
+  // Quick actions
+  quickActions: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg,
+  },
+  quickBtn:     { alignItems: 'center', gap: 8 },
   quickBtnIcon: {
     width: 58, height: 58, borderRadius: Radii.lg,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
   quickBtnLabel: { fontSize: Typography.xs, fontWeight: Typography.medium },
 
-  // ── Coupon banner ──
-  couponBanner: { borderRadius: Radii.xl, overflow: 'hidden', marginBottom: Spacing.lg },
-  couponBannerInner: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 16, gap: 12,
-  },
+  // Coupon
+  couponBanner:      { borderRadius: Radii.xl, overflow: 'hidden' },
+  couponBannerInner: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
   couponIconWrap: {
     width: 42, height: 42, borderRadius: 21,
     backgroundColor: 'rgba(197,163,109,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-  couponTitle: {
-    color: '#F2EDE4', fontSize: Typography.base,
-    fontWeight: Typography.semibold, textAlign: 'right',
-  },
-  couponSub: {
-    color: 'rgba(242,237,228,0.6)', fontSize: Typography.xs,
-    marginTop: 2, textAlign: 'right',
-  },
+  couponTitle: { color: '#F2EDE4', fontSize: Typography.base, fontWeight: Typography.semibold, textAlign: 'right' },
+  couponSub:   { color: 'rgba(242,237,228,0.6)', fontSize: Typography.xs, marginTop: 2, textAlign: 'right' },
 
-  // ── Section headers ──
-  sectionHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: Typography.lg, fontWeight: Typography.bold, textAlign: 'right',
-  },
-  seeAll: { fontSize: Typography.sm, fontWeight: Typography.medium },
-  featuredList: { paddingRight: Spacing.lg, gap: 12, marginBottom: Spacing.lg },
-
-  // ── Delivery card ──
+  // Delivery card
   deliveryCard: {
-    borderRadius: Radii.xl, borderWidth: 1, padding: 2, marginBottom: Spacing.lg,
+    borderRadius: Radii.xl, borderWidth: 1,
+    marginBottom: Spacing.lg, overflow: 'hidden',
   },
-  deliveryCardInner: {
-    borderRadius: Radii.lg, padding: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  deliveryInner: {
+    padding: 16, flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'space-between', gap: 12,
   },
-  deliveryRight:  { flex: 1, alignItems: 'flex-end' },
-  deliveryTitle:  { fontSize: Typography.md, fontWeight: Typography.bold, marginBottom: 4, textAlign: 'right' },
-  etaRow:         { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
-  deliveryEta:    { fontSize: Typography.sm, fontWeight: Typography.semibold },
-  deliverySub:    { fontSize: Typography.xs, textAlign: 'right' },
   orderNowBtn: {
     borderRadius: Radii.pill, paddingHorizontal: 20, paddingVertical: 12,
   },
   orderNowText: { fontSize: Typography.sm, fontWeight: Typography.bold, letterSpacing: 0.4 },
-
-  // ── New arrivals ──
-  newCard: {
-    width: 220, borderRadius: Radii.xl, borderWidth: 1, overflow: 'hidden',
-  },
-  newCardImageWrap: { width: '100%', height: 132, overflow: 'hidden' },
-  newCardImage:     { width: '100%', height: '100%' },
-  newCardOverlay:   { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  newCardTags: {
-    position: 'absolute', top: 10, left: 10,
-    flexDirection: 'row', gap: 6,
-  },
-  newCardTag: { borderRadius: Radii.sm, paddingHorizontal: 8, paddingVertical: 3 },
-  newCardTagText: {
-    color: '#FFF', fontSize: 9, fontWeight: Typography.bold,
-    letterSpacing: 1, textTransform: 'uppercase',
-  },
-  newCardContent: { padding: 14 },
-  newCardName: {
-    fontSize: Typography.base, fontWeight: Typography.bold,
-    marginBottom: 4, textAlign: 'right',
-  },
-  newCardDesc: {
-    fontSize: Typography.xs, marginBottom: 10,
-    textAlign: 'right', lineHeight: 16,
-  },
-  newCardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  newCardPriceRow: { alignItems: 'flex-end' },
-  newCardPrice:    { fontSize: Typography.md, fontWeight: Typography.bold },
-  newCardRating:   { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
-  newCardRatingText: { fontSize: 10 },
-  newCardAddBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  deliveryTitle: { fontSize: Typography.md, fontWeight: Typography.bold, marginBottom: 3 },
+  deliveryEta:   { fontSize: Typography.sm, fontWeight: Typography.semibold },
+  deliverySub:   { fontSize: Typography.xs },
 });
