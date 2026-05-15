@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "Signature Coffeehouse",
-    "slug": "SignatureApp",
+    "slug": "signature-coffeehouse",
+    "owner": "mewsong",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,6 +27,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2d61454b-0178-4695-8a8c-4c9e69ba137e"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2d61454b-0178-4695-8a8c-4c9e69ba137e"
     }
   }
 }
