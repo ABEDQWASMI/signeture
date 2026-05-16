@@ -12,13 +12,15 @@ const GOLD = '#C6A15B';
 const GOLD_LIGHT = '#F5D38A';
 const GOLD_DARK = '#9B7D47';
 const BLACK = '#000000';
-const NUM_BEANS = 30; // Reduced for better web perf
+const NUM_BEANS = 30;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────
+// On web, useNativeDriver must be false for transforms involving SVG containers
+const IS_WEB = Platform.OS === 'web';
+const ND = !IS_WEB; // useNativeDriver value
+
 function rand(min, max) { return Math.random() * (max - min) + min; }
 
-// ─── Small Coffee Bean SVG (for rain) ────────────────────────────────────
-// Note: SVG gradient IDs must be valid XML identifiers (no floats/dots)
+// ─── Bean SVG ────────────────────────────────────────────────────────────
 let beanIdCounter = 0;
 function BeanSVG({ size = 28 }) {
   const id = useRef(`rb${++beanIdCounter}`).current;
@@ -41,7 +43,7 @@ function BeanSVG({ size = 28 }) {
   );
 }
 
-// ─── Half Bean (for split animation) ─────────────────────────────────────
+// ─── Half Bean ────────────────────────────────────────────────────────────
 function HalfBean({ side, size = 120 }) {
   const isLeft = side === 'left';
   const half = size / 2;
@@ -70,7 +72,7 @@ function HalfBean({ side, size = 120 }) {
   );
 }
 
-// ─── One Falling Bean ─────────────────────────────────────────────────────
+// ─── Falling Bean ─────────────────────────────────────────────────────────
 function FallingBean({ config, onLanded }) {
   const translateY = useRef(new Animated.Value(-60)).current;
   const translateX = useRef(new Animated.Value(0)).current;
@@ -82,31 +84,33 @@ function FallingBean({ config, onLanded }) {
 
     Animated.timing(opacity, {
       toValue: 0.85, duration: 100, delay,
-      useNativeDriver: true,
+      useNativeDriver: ND,
     }).start();
 
     Animated.timing(translateY, {
       toValue: height + 80, duration, delay,
       easing: Easing.in(Easing.quad),
-      useNativeDriver: true,
-    }).start(({ finished }) => { if (finished && onLanded) onLanded(); });
+      useNativeDriver: ND,
+    }).start(({ finished }) => {
+      if (finished && onLanded) onLanded();
+    });
 
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateX, {
           toValue: wobbleX, duration: 700,
-          easing: Easing.inOut(Easing.sine), useNativeDriver: true,
+          easing: Easing.inOut(Easing.sine), useNativeDriver: ND,
         }),
         Animated.timing(translateX, {
           toValue: -wobbleX, duration: 700,
-          easing: Easing.inOut(Easing.sine), useNativeDriver: true,
+          easing: Easing.inOut(Easing.sine), useNativeDriver: ND,
         }),
       ])
     ).start();
 
     Animated.timing(rotate, {
       toValue: rotations, duration: duration * 0.8, delay,
-      easing: Easing.linear, useNativeDriver: true,
+      easing: Easing.linear, useNativeDriver: ND,
     }).start();
   }, []);
 
@@ -148,7 +152,7 @@ function BeanRain({ onComplete }) {
     }
   };
 
-  // Safety: if 60% haven't landed in 3s, force complete anyway
+  // Safety fallback: force complete after 3s
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!done.current) {
@@ -169,12 +173,11 @@ function BeanRain({ onComplete }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ─── MAIN SPLASH SCREEN ──────────────────────────────────────────────────
+// ─── SPLASH SCREEN ────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 export function SplashScreen({ onFinish }) {
   const [phase, setPhase] = useState('intro'); // 'intro' | 'rain'
 
-  // ── Phase 1: Intro animations ──
   const leftX = useRef(new Animated.Value(0)).current;
   const rightX = useRef(new Animated.Value(0)).current;
   const splitOpacity = useRef(new Animated.Value(1)).current;
@@ -185,7 +188,7 @@ export function SplashScreen({ onFinish }) {
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
   const introOpacity = useRef(new Animated.Value(1)).current;
 
-  // Global safety net: no matter what, onFinish fires within 6s
+  // Global safety net — always fires within 8s no matter what
   const finishCalled = useRef(false);
   const safeFinish = () => {
     if (!finishCalled.current) {
@@ -195,100 +198,54 @@ export function SplashScreen({ onFinish }) {
   };
 
   useEffect(() => {
-    const globalTimeout = setTimeout(safeFinish, 6000);
+    const globalTimeout = setTimeout(safeFinish, 8000);
     return () => clearTimeout(globalTimeout);
   }, []);
 
   useEffect(() => {
-    // ═══ ANIMATION TIMELINE ═══
-
-    // Step 1 (0–700ms): Two bean halves SPLIT APART
+    // Step 1: Split beans apart
     Animated.parallel([
-      Animated.timing(leftX, {
-        toValue: -80, duration: 700,
-        easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true,
-      }),
-      Animated.timing(rightX, {
-        toValue: 80, duration: 700,
-        easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true,
-      }),
+      Animated.timing(leftX, { toValue: -80, duration: 700, easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: ND }),
+      Animated.timing(rightX, { toValue: 80, duration: 700, easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: ND }),
     ]).start(() => {
 
-      // Step 2 (700–1300ms): Logo APPEARS
+      // Step 2: Logo appears
       Animated.parallel([
-        Animated.timing(logoOpacity, {
-          toValue: 1, duration: 500,
-          easing: Easing.out(Easing.cubic), useNativeDriver: true,
-        }),
-        Animated.spring(logoScale, {
-          toValue: 1, damping: 14, stiffness: 100, useNativeDriver: true,
-        }),
+        Animated.timing(logoOpacity, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: ND }),
+        Animated.spring(logoScale, { toValue: 1, damping: 14, stiffness: 100, useNativeDriver: ND }),
       ]).start(() => {
 
-        // Step 3 (1300–1800ms): Halves come back and fade behind logo
+        // Step 3: Halves return and fade
         Animated.parallel([
-          Animated.timing(leftX, {
-            toValue: 0, duration: 500,
-            easing: Easing.out(Easing.cubic), useNativeDriver: true,
-          }),
-          Animated.timing(rightX, {
-            toValue: 0, duration: 500,
-            easing: Easing.out(Easing.cubic), useNativeDriver: true,
-          }),
-          Animated.timing(splitOpacity, {
-            toValue: 0, duration: 400, delay: 200,
-            useNativeDriver: true,
-          }),
+          Animated.timing(leftX, { toValue: 0, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: ND }),
+          Animated.timing(rightX, { toValue: 0, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: ND }),
+          Animated.timing(splitOpacity, { toValue: 0, duration: 400, delay: 200, useNativeDriver: ND }),
         ]).start(() => {
 
-          // Step 4 (1800–2300ms): "SIGNATURE" + subtitle appear
+          // Step 4: Title + subtitle appear
           Animated.parallel([
-            Animated.timing(titleOpacity, {
-              toValue: 1, duration: 500,
-              easing: Easing.out(Easing.cubic), useNativeDriver: true,
-            }),
-            Animated.timing(titleY, {
-              toValue: 0, duration: 500,
-              easing: Easing.out(Easing.cubic), useNativeDriver: true,
-            }),
+            Animated.timing(titleOpacity, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: ND }),
+            Animated.timing(titleY, { toValue: 0, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: ND }),
           ]).start(() => {
-            Animated.timing(subtitleOpacity, {
-              toValue: 0.8, duration: 350,
-              easing: Easing.out(Easing.cubic), useNativeDriver: true,
-            }).start(() => {
+            Animated.timing(subtitleOpacity, { toValue: 0.8, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: ND })
+              .start(() => {
 
-              // Step 5 (2800ms): On web, skip rain and go straight to finish
-              // On native, do the full rain animation
-              setTimeout(() => {
-                if (Platform.OS === 'web') {
-                  // Web: fade out and finish directly — bean rain is unreliable on deployed web
-                  Animated.timing(introOpacity, {
-                    toValue: 0, duration: 400,
-                    easing: Easing.in(Easing.cubic), useNativeDriver: true,
-                  }).start(() => {
-                    safeFinish();
-                  });
-                } else {
-                  Animated.timing(introOpacity, {
-                    toValue: 0, duration: 400,
-                    easing: Easing.in(Easing.cubic), useNativeDriver: true,
-                  }).start(() => {
-                    setPhase('rain');
-                  });
-                }
-              }, 500);
-            });
+                // Step 5: Fade intro → bean rain (on ALL platforms now, with safe fallback)
+                setTimeout(() => {
+                  Animated.timing(introOpacity, { toValue: 0, duration: 400, easing: Easing.in(Easing.cubic), useNativeDriver: ND })
+                    .start(() => {
+                      setPhase('rain');
+                    });
+                }, 500);
+              });
           });
         });
       });
     });
   }, []);
 
-  // ── When rain finishes → reveal login seamlessly ──
   const handleRainComplete = () => {
-    setTimeout(() => {
-      safeFinish();
-    }, 400);
+    setTimeout(safeFinish, 300);
   };
 
   return (
@@ -298,11 +255,9 @@ export function SplashScreen({ onFinish }) {
         style={StyleSheet.absoluteFill}
       />
 
-      {/* ═══ PHASE 1: INTRO (Beans split → Logo → Text) ═══ */}
       {phase === 'intro' && (
         <Animated.View style={[styles.center, { opacity: introOpacity }]}>
 
-          {/* Two bean halves that split */}
           <Animated.View style={[styles.splitRow, { opacity: splitOpacity }]}>
             <Animated.View style={{ transform: [{ translateX: leftX }] }}>
               <HalfBean side="left" size={120} />
@@ -312,11 +267,7 @@ export function SplashScreen({ onFinish }) {
             </Animated.View>
           </Animated.View>
 
-          {/* Logo appears in the center */}
-          <Animated.View style={[styles.logoWrap, {
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          }]}>
+          <Animated.View style={[styles.logoWrap, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
             <Image
               source={require('../../assets/logo.png')}
               style={styles.logoImage}
@@ -324,24 +275,19 @@ export function SplashScreen({ onFinish }) {
             />
           </Animated.View>
 
-          {/* Title: SIGNATURE */}
-          <Animated.View style={[styles.titleWrap, {
-            opacity: titleOpacity,
-            transform: [{ translateY: titleY }],
-          }]}>
+          <Animated.View style={[styles.titleWrap, { opacity: titleOpacity, transform: [{ translateY: titleY }] }]}>
             <Text style={styles.brandName}>SIGNATURE</Text>
           </Animated.View>
 
-          {/* Subtitle */}
           <Animated.View style={[styles.subtitleWrap, { opacity: subtitleOpacity }]}>
             <View style={styles.line} />
             <Text style={styles.tagline}>COFFEE & MORE</Text>
             <View style={styles.line} />
           </Animated.View>
+
         </Animated.View>
       )}
 
-      {/* ═══ PHASE 2: BEAN RAIN (native only, transition to login) ═══ */}
       {phase === 'rain' && (
         <BeanRain onComplete={handleRainComplete} />
       )}
@@ -349,62 +295,15 @@ export function SplashScreen({ onFinish }) {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BLACK,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  splitRow: {
-    position: 'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoWrap: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 5,
-  },
-  logoImage: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-  },
-  titleWrap: {
-    position: 'absolute',
-    bottom: height * 0.28,
-    alignItems: 'center',
-  },
-  brandName: {
-    fontSize: 38,
-    fontWeight: '700',
-    color: GOLD,
-    letterSpacing: 10,
-    textAlign: 'center',
-  },
-  subtitleWrap: {
-    position: 'absolute',
-    bottom: height * 0.22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  tagline: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: GOLD,
-    letterSpacing: 3,
-  },
-  line: {
-    width: 36,
-    height: 1,
-    backgroundColor: GOLD,
-    opacity: 0.55,
-  },
+  root: { flex: 1, backgroundColor: BLACK },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  splitRow: { position: 'absolute', flexDirection: 'row', alignItems: 'center' },
+  logoWrap: { position: 'absolute', alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  logoImage: { width: 160, height: 160, borderRadius: 80 },
+  titleWrap: { position: 'absolute', bottom: height * 0.28, alignItems: 'center' },
+  brandName: { fontSize: 38, fontWeight: '700', color: GOLD, letterSpacing: 10, textAlign: 'center' },
+  subtitleWrap: { position: 'absolute', bottom: height * 0.22, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  tagline: { fontSize: 11, fontWeight: '500', color: GOLD, letterSpacing: 3 },
+  line: { width: 36, height: 1, backgroundColor: GOLD, opacity: 0.55 },
 });
