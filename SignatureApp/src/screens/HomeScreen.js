@@ -185,9 +185,7 @@ export function HomeScreen({ navigation }) {
   const heroAnim   = useFadeUp(80);
   const ctaAnim    = useFadeUp(180);
   const pillsAnim  = useFadeUp(260);
-  const rewardAnim = useFadeUp(320);
-  const quickAnim  = useFadeUp(400);
-  const featAnim   = useFadeUp(460);
+  const featAnim   = useFadeUp(360);
 
   const hour     = new Date().getHours();
   const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
@@ -364,55 +362,8 @@ export function HomeScreen({ navigation }) {
           />
         </Animated.View>
 
-        {/* ── Rewards card ── */}
-        <Animated.View style={[rewardAnim, { paddingHorizontal: Spacing.lg, marginTop: Spacing.lg }]}>
-          <TouchableOpacity onPress={() => navigation.navigate('Rewards')} activeOpacity={0.88}>
-            <LinearGradient
-              colors={isDark ? ['#2C1E0A', '#1A1200', '#0E0900'] : ['#4A3015', '#3A2410', '#2C1C08']}
-              style={[styles.rewardCard, {
-                borderColor: isDark ? 'rgba(197,163,109,0.22)' : 'rgba(197,163,109,0.30)',
-              }]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={styles.rewardEyebrow}>
-                  <Text style={styles.rewardEyebrowText}>SIGNATURE REWARDS</Text>
-                </View>
-                <Text style={[styles.rewardTierText, { color: currentTier.color }]}>
-                  ◆ عضو {currentTier.name}
-                </Text>
-                {nextTier && (
-                  <Text style={styles.rewardNextText}>
-                    {nextTier.min - stars} نجمة للوصول إلى{' '}
-                    <Text style={{ color: nextTier.color }}>{nextTier.name}</Text>
-                  </Text>
-                )}
-                <View style={styles.rewardProgressTrack}>
-                  <View style={[styles.rewardProgressFill, {
-                    width: `${Math.min(progress, 100)}%`,
-                    backgroundColor: currentTier.color,
-                  }]} />
-                </View>
-              </View>
-              <View style={styles.rewardRight}>
-                <Text style={styles.rewardStarsNum}>{stars}</Text>
-                <Text style={styles.rewardStarsLabel}>★ نجمة</Text>
-              </View>
-              <Feather name="chevron-left" size={16} color="rgba(197,163,109,0.55)" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ── Quick actions ── */}
-        <Animated.View style={[styles.quickActions, quickAnim]}>
-          <QuickBtn iconName="message-circle" label="الدردشة"   onPress={() => navigation.navigate('Chat')}    C={C} isDark={isDark} />
-          <QuickBtn iconName="map-pin"        label="الفروع"    onPress={() => {}}                             C={C} isDark={isDark} />
-          <QuickBtn iconName="tag"            label="الكوبونات" onPress={() => navigation.navigate('Coupons')} C={C} isDark={isDark} />
-          <QuickBtn iconName="package"        label="اطلب الآن" onPress={() => navigation.navigate('Menu')}   C={C} isDark={isDark} />
-        </Animated.View>
-
         {/* ── Coupon banner ── */}
-        <View style={{ paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg }}>
+        <View style={{ paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg, marginTop: Spacing.lg }}>
           <TouchableOpacity onPress={() => navigation.navigate('Coupons')} activeOpacity={0.88} style={styles.couponBanner}>
             <LinearGradient
               colors={isDark ? ['#3D2B1F', '#5A3D2A'] : ['#5A3D2A', '#7A5038']}
