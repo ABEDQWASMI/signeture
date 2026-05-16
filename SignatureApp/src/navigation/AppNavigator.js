@@ -145,13 +145,13 @@ export function AppNavigator() {
   const { user } = useApp();
   const [splashDone, setSplashDone] = useState(false);
 
-  if (!splashDone) {
-    return <SplashScreen onFinish={() => setSplashDone(true)} />;
-  }
-
   return (
     <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
+      {!splashDone ? (
+        <SplashScreen onFinish={() => setSplashDone(true)} />
+      ) : (
+        user ? <AppStack /> : <AuthStack />
+      )}
     </NavigationContainer>
   );
 }

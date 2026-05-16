@@ -309,7 +309,13 @@ export function SplashScreen({ onFinish }) {
 
       {/* ═══ PHASE 2: BEAN RAIN (transition to login) ═══ */}
       {phase === 'rain' && (
-        <BeanRain onComplete={handleRainComplete} />
+        <>
+          <LinearGradient
+            colors={['#0A0800', '#000000', '#000000']}
+            style={StyleSheet.absoluteFill}
+          />
+          <BeanRain onComplete={handleRainComplete} />
+        </>
       )}
     </View>
   );
