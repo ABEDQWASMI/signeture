@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Feather, AntDesign, FontAwesome } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Colors, Typography, Radii, Spacing } from '../constants/theme';
 import { GoldButton } from '../components/GoldButton';
 import { InputField } from '../components/InputField';
@@ -19,9 +19,9 @@ function SocialBtn({ provider, onPress, colors, isDark }) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const config = {
-    apple:    { icon: <AntDesign name="apple1"   size={16} color={isDark ? '#F2EDE4' : '#1A1208'} />, label: 'Apple' },
-    google:   { icon: <AntDesign name="google"   size={15} color="#EA4335" />,                        label: 'Google' },
-    facebook: { icon: <FontAwesome name="facebook" size={15} color="#1877F2" />,                      label: 'Facebook' },
+    apple:    { icon: <Feather name="smartphone" size={15} color={isDark ? '#F2EDE4' : '#1A1208'} />, label: 'Apple' },
+    google:   { icon: <Feather name="globe"      size={15} color="#EA4335" />,                        label: 'Google' },
+    facebook: { icon: <Feather name="users"      size={15} color="#1877F2" />,                        label: 'Facebook' },
   };
   const { icon, label } = config[provider];
 

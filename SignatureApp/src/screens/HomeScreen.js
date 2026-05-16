@@ -336,33 +336,6 @@ export function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* ── Stats strip ── */}
-          <Animated.View style={[styles.statsStrip, ctaAnim, {
-            borderColor:     isDark ? 'rgba(197,163,109,0.12)' : 'rgba(139,99,50,0.10)',
-            backgroundColor: isDark ? 'rgba(197,163,109,0.04)' : 'rgba(139,99,50,0.03)',
-          }]}>
-            {[
-              { value: `${stars}`, unit: '★', label: 'نجومك' },
-              { value: '٢٠',      unit: 'د',  label: 'توصيل' },
-              { value: '٣',       unit: '',   label: 'كوبونات' },
-            ].map((stat, i) => (
-              <React.Fragment key={stat.label}>
-                {i > 0 && (
-                  <View style={[styles.statDivider, {
-                    backgroundColor: isDark ? 'rgba(197,163,109,0.14)' : 'rgba(139,99,50,0.10)',
-                  }]} />
-                )}
-                <View style={styles.statItem}>
-                  <Text style={[styles.statValue, { color: C.secondary }]}>
-                    {stat.value}
-                    <Text style={{ color: C.primary, fontSize: 13 }}>{stat.unit}</Text>
-                  </Text>
-                  <Text style={[styles.statLabel, { color: C.textMuted }]}>{stat.label}</Text>
-                </View>
-              </React.Fragment>
-            ))}
-          </Animated.View>
-
         </SafeAreaView>
 
         {/* ── "جرّبت هذه؟" circular pills ── */}
