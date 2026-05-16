@@ -34,7 +34,19 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "name": "Signature Coffeehouse",
+      "shortName": "Signature",
+      "description": "Signature Coffeehouse - Coffee & More",
+      "themeColor": "#C6A15B",
+      "backgroundColor": "#000000",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "scope": "/",
+      "lang": "ar",
+      "dir": "rtl"
     },
     "extra": {
       "eas": {

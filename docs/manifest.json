@@ -1,0 +1,26 @@
+{
+    "name": "Signature Coffeehouse",
+    "short_name": "Signature",
+    "description": "Signature Coffeehouse - Coffee & More",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#000000",
+    "theme_color": "#C6A15B",
+    "lang": "ar",
+    "dir": "rtl",
+    "icons": [
+        {
+            "src": "/assets/assets/logo.514978c6068aeedcfc5ee725e4f8dd7a.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/x-icon"
+        }
+    ]
+}

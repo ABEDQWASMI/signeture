@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import {
-  View, StyleSheet, Animated, Easing, Dimensions, Text, Image,
+  View, StyleSheet, Animated, Easing, Dimensions, Text, Image, Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, {
@@ -8,27 +8,30 @@ import Svg, {
 } from 'react-native-svg';
 
 const { width, height } = Dimensions.get('window');
-const GOLD       = '#C6A15B';
+const GOLD = '#C6A15B';
 const GOLD_LIGHT = '#F5D38A';
-const GOLD_DARK  = '#9B7D47';
-const BLACK      = '#000000';
-const NUM_BEANS  = 40; // Heavy rain
+const GOLD_DARK = '#9B7D47';
+const BLACK = '#000000';
+const NUM_BEANS = 30; // Reduced for better web perf
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function rand(min, max) { return Math.random() * (max - min) + min; }
 
 // ─── Small Coffee Bean SVG (for rain) ────────────────────────────────────
+// Note: SVG gradient IDs must be valid XML identifiers (no floats/dots)
+let beanIdCounter = 0;
 function BeanSVG({ size = 28 }) {
+  const id = useRef(`rb${++beanIdCounter}`).current;
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
       <Defs>
-        <RadialGradient id={`rb${size}`} cx="45%" cy="38%" r="60%">
-          <Stop offset="0%"   stopColor={GOLD_LIGHT} />
-          <Stop offset="55%"  stopColor={GOLD} />
+        <RadialGradient id={id} cx="45%" cy="38%" r="60%">
+          <Stop offset="0%" stopColor={GOLD_LIGHT} />
+          <Stop offset="55%" stopColor={GOLD} />
           <Stop offset="100%" stopColor={GOLD_DARK} />
         </RadialGradient>
       </Defs>
-      <Ellipse cx="20" cy="26" rx="15" ry="22" fill={`url(#rb${size})`} />
+      <Ellipse cx="20" cy="26" rx="15" ry="22" fill={`url(#${id})`} />
       <Path
         d="M20 7 Q16 16 16 26 Q16 36 20 45"
         stroke={GOLD_DARK} strokeWidth="1.8" fill="none" strokeLinecap="round"
@@ -42,6 +45,7 @@ function BeanSVG({ size = 28 }) {
 function HalfBean({ side, size = 120 }) {
   const isLeft = side === 'left';
   const half = size / 2;
+  const id = `hb_${side}`;
   return (
     <View style={{ width: half, height: size, overflow: 'hidden' }}>
       <Svg
@@ -49,13 +53,13 @@ function HalfBean({ side, size = 120 }) {
         style={{ position: 'absolute', left: isLeft ? 0 : -half }}
       >
         <Defs>
-          <RadialGradient id={`hb${side}`} cx="45%" cy="38%" r="60%">
-            <Stop offset="0%"   stopColor={GOLD_LIGHT} />
-            <Stop offset="55%"  stopColor={GOLD} />
+          <RadialGradient id={id} cx="45%" cy="38%" r="60%">
+            <Stop offset="0%" stopColor={GOLD_LIGHT} />
+            <Stop offset="55%" stopColor={GOLD} />
             <Stop offset="100%" stopColor={GOLD_DARK} />
           </RadialGradient>
         </Defs>
-        <Ellipse cx="60" cy="60" rx="44" ry="54" fill={`url(#hb${side})`} />
+        <Ellipse cx="60" cy="60" rx="44" ry="54" fill={`url(#${id})`} />
         <Path
           d="M60 10 Q52 28 52 60 Q52 92 60 110"
           stroke={GOLD_DARK} strokeWidth="2.5" fill="none" strokeLinecap="round"
@@ -70,8 +74,8 @@ function HalfBean({ side, size = 120 }) {
 function FallingBean({ config, onLanded }) {
   const translateY = useRef(new Animated.Value(-60)).current;
   const translateX = useRef(new Animated.Value(0)).current;
-  const rotate     = useRef(new Animated.Value(0)).current;
-  const opacity    = useRef(new Animated.Value(0)).current;
+  const rotate = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const { delay, duration, wobbleX, rotations } = config;
@@ -116,7 +120,7 @@ function FallingBean({ config, onLanded }) {
       transform: [{ translateY }, { translateX }, { rotate: spin }],
       opacity,
     }}>
-      <BeanSVG size={config.size} />
+      <BeanSVG size={Math.round(config.size)} />
     </Animated.View>
   );
 }
@@ -125,11 +129,11 @@ function FallingBean({ config, onLanded }) {
 function BeanRain({ onComplete }) {
   const beans = useMemo(() => Array.from({ length: NUM_BEANS }, (_, i) => ({
     id: i,
-    x:         rand(-10, width - 30),
-    delay:     rand(0, 800),
-    duration:  rand(900, 1600),
-    wobbleX:   rand(3, 10),
-    size:      rand(16, 36),
+    x: rand(-10, width - 30),
+    delay: rand(0, 600),
+    duration: rand(800, 1400),
+    wobbleX: rand(3, 10),
+    size: Math.round(rand(16, 34)),
     rotations: rand(1, 4) * (Math.random() > 0.5 ? 1 : -1),
   })), []);
 
@@ -143,6 +147,17 @@ function BeanRain({ onComplete }) {
       onComplete && onComplete();
     }
   };
+
+  // Safety: if 60% haven't landed in 3s, force complete anyway
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!done.current) {
+        done.current = true;
+        onComplete && onComplete();
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -160,20 +175,29 @@ export function SplashScreen({ onFinish }) {
   const [phase, setPhase] = useState('intro'); // 'intro' | 'rain'
 
   // ── Phase 1: Intro animations ──
-  // Two bean halves start together, split apart, logo appears in gap,
-  // halves come back, title appears, then transitions to rain
-  const leftX         = useRef(new Animated.Value(0)).current;
-  const rightX        = useRef(new Animated.Value(0)).current;
-  const splitOpacity  = useRef(new Animated.Value(1)).current;
-  const logoOpacity   = useRef(new Animated.Value(0)).current;
-  const logoScale     = useRef(new Animated.Value(0.5)).current;
-  const titleOpacity  = useRef(new Animated.Value(0)).current;
-  const titleY        = useRef(new Animated.Value(20)).current;
+  const leftX = useRef(new Animated.Value(0)).current;
+  const rightX = useRef(new Animated.Value(0)).current;
+  const splitOpacity = useRef(new Animated.Value(1)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.5)).current;
+  const titleOpacity = useRef(new Animated.Value(0)).current;
+  const titleY = useRef(new Animated.Value(20)).current;
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
-  const introOpacity  = useRef(new Animated.Value(1)).current;
+  const introOpacity = useRef(new Animated.Value(1)).current;
 
-  // ── Phase 2: Rain reveal ──
-  const loginRevealY  = useRef(new Animated.Value(0)).current; // curtain slides up
+  // Global safety net: no matter what, onFinish fires within 6s
+  const finishCalled = useRef(false);
+  const safeFinish = () => {
+    if (!finishCalled.current) {
+      finishCalled.current = true;
+      onFinish && onFinish();
+    }
+  };
+
+  useEffect(() => {
+    const globalTimeout = setTimeout(safeFinish, 6000);
+    return () => clearTimeout(globalTimeout);
+  }, []);
 
   useEffect(() => {
     // ═══ ANIMATION TIMELINE ═══
@@ -190,7 +214,7 @@ export function SplashScreen({ onFinish }) {
       }),
     ]).start(() => {
 
-      // Step 2 (700–1300ms): Logo APPEARS in the gap between the halves
+      // Step 2 (700–1300ms): Logo APPEARS
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1, duration: 500,
@@ -233,14 +257,25 @@ export function SplashScreen({ onFinish }) {
               easing: Easing.out(Easing.cubic), useNativeDriver: true,
             }).start(() => {
 
-              // Step 5 (2800ms): Hold 500ms then fade out intro → start rain
+              // Step 5 (2800ms): On web, skip rain and go straight to finish
+              // On native, do the full rain animation
               setTimeout(() => {
-                Animated.timing(introOpacity, {
-                  toValue: 0, duration: 400,
-                  easing: Easing.in(Easing.cubic), useNativeDriver: true,
-                }).start(() => {
-                  setPhase('rain');
-                });
+                if (Platform.OS === 'web') {
+                  // Web: fade out and finish directly — bean rain is unreliable on deployed web
+                  Animated.timing(introOpacity, {
+                    toValue: 0, duration: 400,
+                    easing: Easing.in(Easing.cubic), useNativeDriver: true,
+                  }).start(() => {
+                    safeFinish();
+                  });
+                } else {
+                  Animated.timing(introOpacity, {
+                    toValue: 0, duration: 400,
+                    easing: Easing.in(Easing.cubic), useNativeDriver: true,
+                  }).start(() => {
+                    setPhase('rain');
+                  });
+                }
               }, 500);
             });
           });
@@ -251,9 +286,8 @@ export function SplashScreen({ onFinish }) {
 
   // ── When rain finishes → reveal login seamlessly ──
   const handleRainComplete = () => {
-    // Just finish — the login will appear naturally
     setTimeout(() => {
-      onFinish && onFinish();
+      safeFinish();
     }, 400);
   };
 
@@ -278,7 +312,7 @@ export function SplashScreen({ onFinish }) {
             </Animated.View>
           </Animated.View>
 
-          {/* Logo appears in the center (between the halves) */}
+          {/* Logo appears in the center */}
           <Animated.View style={[styles.logoWrap, {
             opacity: logoOpacity,
             transform: [{ scale: logoScale }],
@@ -307,7 +341,7 @@ export function SplashScreen({ onFinish }) {
         </Animated.View>
       )}
 
-      {/* ═══ PHASE 2: BEAN RAIN (transition to login) ═══ */}
+      {/* ═══ PHASE 2: BEAN RAIN (native only, transition to login) ═══ */}
       {phase === 'rain' && (
         <BeanRain onComplete={handleRainComplete} />
       )}
