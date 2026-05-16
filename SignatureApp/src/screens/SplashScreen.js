@@ -12,7 +12,7 @@ const GOLD       = '#C6A15B';
 const GOLD_LIGHT = '#F5D38A';
 const GOLD_DARK  = '#9B7D47';
 const BLACK      = '#000000';
-const NUM_BEANS  = 40; // Heavy rain
+const NUM_BEANS  = 20; // Reduced for better performance
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function rand(min, max) { return Math.random() * (max - min) + min; }
@@ -138,11 +138,17 @@ function BeanRain({ onComplete }) {
 
   const handleLanded = () => {
     landedCount.current += 1;
-    if (!done.current && landedCount.current >= Math.floor(NUM_BEANS * 0.6)) {
+    const threshold = Math.floor(NUM_BEANS * 0.5); // 50% of beans need to land
+    if (!done.current && landedCount.current >= threshold) {
       done.current = true;
+      console.log(`[BeanRain] ${landedCount.current}/${NUM_BEANS} beans landed - completing`);
       onComplete && onComplete();
     }
   };
+
+  useEffect(() => {
+    console.log('[BeanRain] Starting with', NUM_BEANS, 'beans');
+  }, []);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -158,6 +164,14 @@ function BeanRain({ onComplete }) {
 // ═══════════════════════════════════════════════════════════════════════════
 export function SplashScreen({ onFinish }) {
   const [phase, setPhase] = useState('intro'); // 'intro' | 'rain'
+
+  useEffect(() => {
+    console.log('[SplashScreen] Mounted, starting intro phase');
+  }, []);
+
+  useEffect(() => {
+    console.log('[SplashScreen] Phase changed to:', phase);
+  }, [phase]);
 
   // ── Phase 1: Intro animations ──
   // Two bean halves start together, split apart, logo appears in gap,
@@ -256,6 +270,17 @@ export function SplashScreen({ onFinish }) {
       onFinish && onFinish();
     }, 400);
   };
+
+  // ── SAFETY TIMEOUT: If rain doesn't complete after 5s, force finish ──
+  useEffect(() => {
+    if (phase === 'rain') {
+      const safetyTimer = setTimeout(() => {
+        console.warn('[SplashScreen] Rain animation timeout - forcing finish');
+        onFinish && onFinish();
+      }, 5000);
+      return () => clearTimeout(safetyTimer);
+    }
+  }, [phase, onFinish]);
 
   return (
     <View style={styles.root}>
